@@ -3,7 +3,7 @@
 ### This week I worked on:
 
 [
-I looked for sites that I can download free pgn files from https://www.pgnmentor.com/files.html and https://database.lichess.org/
+I looked for sites that I can download free pgn files from.
 Determined how I want my database to be set up, it will include Games, Plays, FEN'S, ELO's, and other less important stats that are contained in PGN files.
 Researched how to translate these PGN files into my database.
 ]
