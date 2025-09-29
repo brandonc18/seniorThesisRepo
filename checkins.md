@@ -1,4 +1,4 @@
-## Week 1 Summary (MM/DD/YYYY)
+## Week 1 Summary (09/29/2025)
 
 ### This week I worked on:
 
