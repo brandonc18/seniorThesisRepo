@@ -3,32 +3,32 @@
 ### This week I worked on:
 
 [
-I looked for sites that I can download free pgn files from.
-Determined how I want my database to be set up, it will include Games, Plays, FEN'S, ELO's, and other less important stats that are contained in PGN files.
-Researched how to translate these PGN files into my database.
+- I looked for sites that I can download free pgn files from.
+- Determined how I want my database to be set up, it will include Games, Plays, FEN'S, ELO's, and other less important stats that are contained in PGN files.
+- Researched how to translate these PGN files into my database.
 ]
 
 ### This week I learned:
 
 [
-https://www.pgnmentor.com/files.html and https://database.lichess.org/ host free downloads for PGN files.
+- https://www.pgnmentor.com/files.html and https://database.lichess.org/ host free downloads for PGN files.
 The first site being PGNs for world top players, the second being larger monthly records of all games on that website.
-Python has a chess library, zstandard, io, and sqlite3 that can easily handle translating PGN files.
+- Python has a chess library, zstandard, io, and sqlite3 that can easily handle translating PGN files.
 ]
 
 ### My successes this week were:
 
 [
-Getting a basic understanding of how to proceed, and finding sources to do so.
-Finding the appropriate libraries to create the python script that will start this project.
+- Getting a basic understanding of how to proceed, and finding sources to do so.
+- Finding the appropriate libraries to create the python script that will start this project.
 ]
 
 ### The challenges I faced this week were:
 
 [
-Starting the script for my database creator.
-Trying to determine if I want to use c++ or python for the main part of the project, both have chess libraries that I can explore.
-Learning to understand chess notation for movements.
+- Starting the script for my database creator.
+- Trying to determine if I want to use c++ or python for the main part of the project, both have chess libraries that I can explore.
+- Learning to understand chess notation for movements.
 ]
 
 ---
