@@ -25,22 +25,30 @@ The first site being PGNs for world top players, the second being larger monthly
 
 ---
 
-## Week 2 Summary (MM/DD/YYYY)
+## Week 2 Summary (10/06/2025)
 ### This week I worked on:
 
-[Your answer here]
+- My plan for the structure of my chess engine.
+- Studied how most chess engines function.
 
 ### This week I learned:
 
-[Your answer here]
+- How bitboards can be used to efficiently calculate possible moves.
+- Trying to use a markov chain would be to uncertain and would be a brute force method.
+- That pieces and board positions have values that help the engine make decisions.
+- It is more efficient to calculate psuedo legal moves (moves that a piece could make if there were no obstacles) than straight up calculating legal moves.
 
 ### My successes this week were:
 
-[Your answer here]
+- Changing course from Markov to a more traditional chess engine.
+- Researching the inner structures of chess engines.
+- Choosing c++ as my language to use.
 
 ### The challenges I faced this week were:
 
-[Your answer here]
+- Understanding how bitboards work and how to use them.
+- Switching course from Markov to Traditional chess engine plan.
+- Trying to figure out if I want to use bitboards, or start with something a little simpler yet less efficient.
 
 ---
 
