@@ -1,4 +1,4 @@
-# Senior Thesis Repo: [Markov Chain Chess Engine]
+# Senior Thesis Repo: [Chess Engine]
 ## Introduction
 The Markov Chain is a mathematical model that determines the likelyhood of transitioning from one state to the next. It only depends on the current state, and has no memory of how it got there. In this Chess Engine, it will find every legal move, and then using the markov chain, it will determine the best moves to make, and the win probabilities of those moves. The current state in a chess game can be determined using FEN which is standard notation for the current state of the board. 
 
