@@ -60,8 +60,8 @@ The first site being PGNs for world top players, the second being larger monthly
 
 ### This week I learned:
 
-- How to perform bitwise operations with U64 or uint64_t.
-- How to use bitwise operations and hexadecimal representation for it.
+- How to use U64 or uint64_t for my bitboards.
+- How to use bitwise operations and hexadecimal representation for my bitboards.
 
 ### My successes this week were:
 
