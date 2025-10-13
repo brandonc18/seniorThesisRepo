@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cstdint>
 
 using namespace std;
 
@@ -53,8 +54,9 @@ struct Board {
 				else if (position & black_queens) p = 'q';
 				else if (position & black_king) p = 'k';
 				else if (position & black_knights) p = 'n';
-				cout << p << endl;
+				cout << p << ' ';
 			}
+			cout << endl;
 		}
 		cout << "  a b c d e f g h\n";
 	}
@@ -63,6 +65,8 @@ struct Board {
 int main()
 {
     cout<< "Chess Engine Project" <<endl;
+	Board board;
+	board.print();
 
     return 0;
 }
