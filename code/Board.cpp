@@ -17,10 +17,6 @@ Board::Board() {
 	black_king = 0x0800000000000000ULL;		// E8
 }
 
-U64 Board::occupied() {
-	return white_pawns | white_knights | white_bishops | white_rooks | white_queens | white_king | black_pawns | black_knights | black_bishops | black_rooks | black_queens | black_king;
-}
-
 void Board::print() {
 	// U64 occupied = this->occupied();
 	for (int row = 7; row >= 0; row--) {
@@ -45,5 +41,20 @@ void Board::print() {
 		}
 			cout << endl;
 	}
-	cout << "  a b c d e f g h\n";
+	cout << "  a b c d e f g h\n\n";
+}
+
+void Board::game() {
+	while (true) {
+		char input;
+		cout << "(p)rint or (q)uit: ";
+		cin >> input;
+		cout << endl;
+		if (input == 'p') print();
+		else if (input == 'q') break;
+	}
+}
+
+U64 Board::occupied() {
+	return white_pawns | white_knights | white_bishops | white_rooks | white_queens | white_king | black_pawns | black_knights | black_bishops | black_rooks | black_queens | black_king;
 }

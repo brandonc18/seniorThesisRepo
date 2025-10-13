@@ -7,9 +7,10 @@ using U64 = uint64_t;
 class Board {
 public:
 	Board();
-	U64 occupied();
-	void print();
+	void game();
 private:
+	void print();
+	U64 occupied();
 	// Bitboards for each piece type
 	U64 white_pawns, white_knights, white_bishops, white_rooks, white_queens, white_king;
     U64 black_pawns, black_knights, black_bishops, black_rooks, black_queens, black_king;

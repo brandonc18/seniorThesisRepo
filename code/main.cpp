@@ -2,7 +2,7 @@
 
 int main() {
 	Board board;
-	board.print();
+	board.game();
 
     return 0;
 }
