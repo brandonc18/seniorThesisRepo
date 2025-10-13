@@ -52,7 +52,7 @@ The first site being PGNs for world top players, the second being larger monthly
 
 ---
 
-## Week 3 Summary (MM/DD/YYYY)
+## Week 3 Summary (10/13/2025)
 ### This week I worked on:
 
 [Your answer here]
