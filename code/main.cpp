@@ -64,7 +64,6 @@ struct Board {
 
 int main()
 {
-    cout<< "Chess Engine Project" <<endl;
 	Board board;
 	board.print();
 
