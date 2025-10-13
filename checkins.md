@@ -55,19 +55,24 @@ The first site being PGNs for world top players, the second being larger monthly
 ## Week 3 Summary (10/13/2025)
 ### This week I worked on:
 
-[Your answer here]
+- Started my code and got a starting board layout.
+- Planning a good foundation for this project that will make it flexible later on.
 
 ### This week I learned:
 
-[Your answer here]
+- How to perform bitwise operations with U64 or uint64_t.
+- How to use bitwise operations and hexadecimal representation for it.
 
 ### My successes this week were:
 
-[Your answer here]
+- Creating a base board layout using bitboards.
+- Creating a function to determine piece present at certain locations.
+- Creating a function to print the current board state.
 
 ### The challenges I faced this week were:
 
-[Your answer here]
+- Understanding hexadecimal in the creation of my bitboards.
+- Accidentally deleting my week 3 summary commit.
 
 ---
 
