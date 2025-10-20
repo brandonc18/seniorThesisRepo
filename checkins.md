@@ -79,19 +79,24 @@ The first site being PGNs for world top players, the second being larger monthly
 ## Week 4 Summary (MM/DD/YYYY)
 ### This week I worked on:
 
-[Your answer here]
+- Starting the Psuedo Legal Move functions, mainly the pawn movement.
 
 ### This week I learned:
 
-[Your answer here]
+- How to do pawn movements, 1 or 2 spaces at start, capture, and promotion.
+- How to use Rank and File calculations.
 
 ### My successes this week were:
 
-[Your answer here]
+- Created a mostly functional getPawnMoves function.
+- Used bitboards to for efficient move checking.
+- Got notation such as "e3 e4" working instead of numbers.
 
 ### The challenges I faced this week were:
 
-[Your answer here]
+- Understanding U64 operations.
+- Getting pawn promotion to work without issues.
+- Making sure pawn captures only happen when there is something to capture.
 
 ---
 
