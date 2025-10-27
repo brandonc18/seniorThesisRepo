@@ -51,7 +51,7 @@ void Board::print() {
 }
 
 Bitboard Board::occupied() {
-    return occupancy[BothOcc]; // Now use precomputed BOTH occupancy
+    return occupancy[BOTH_OCCUPIED]; // Return precomputed occupancy for all pieces
 }
 
 void Board::updateOccupancy() {
