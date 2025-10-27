@@ -3,18 +3,21 @@
 
 
 Board::Board() {
-	white_pawns = 0x000000000000FF00ULL;	// Rank 2
-	white_knights = 0x0000000000000042ULL;	// B1 and G1
-	white_bishops = 0x0000000000000024ULL;	// C1 and F1
-	white_rooks = 0x0000000000000081ULL;	// A1 and H1
-	white_queens = 0x0000000000000010ULL;	// D1
-	white_king = 0x0000000000000008ULL;		// E1
-	black_pawns = 0x00FF000000000000ULL;	// Rank 7
-	black_knights = 0x4200000000000000ULL;	// B8 and G8
-	black_bishops = 0x2400000000000000ULL;	// C8 and F8
-	black_rooks = 0x8100000000000000ULL;	// A8 and H8
-	black_queens = 0x1000000000000000ULL;	// D8
-	black_king = 0x0800000000000000ULL;		// E8
+	// White pieces
+    WHITE_PAWNS.set_raw(0x000000000000FF00ULL);      // Rank 2 (squares 8-15)
+    WHITE_KNIGHTS.set_raw(0x0000000000000042ULL);    // b1 (1), g1 (6)
+    WHITE_BISHOPS.set_raw(0x0000000000000024ULL);    // c1 (2), f1 (5)
+    WHITE_ROOKS.set_raw(0x0000000000000081ULL);      // a1 (0), h1 (7)
+    WHITE_QUEENS.set_raw(0x0000000000000008ULL);     // d1 (3)
+    WHITE_KING.set_raw(0x0000000000000010ULL);       // e1 (4)
+
+    // Black pieces
+    BLACK_PAWNS.set_raw(0x00FF000000000000ULL);      // Rank 7 (squares 48-55)
+    BLACK_KNIGHTS.set_raw(0x4200000000000000ULL);    // b8 (57), g8 (62)
+    BLACK_BISHOPS.set_raw(0x2400000000000000ULL);    // c8 (58), f8 (61)
+    BLACK_ROOKS.set_raw(0x8100000000000000ULL);      // a8 (56), h8 (63)
+    BLACK_QUEENS.set_raw(0x0800000000000000ULL);     // d8 (59)
+    BLACK_KING.set_raw(0x1000000000000000ULL);       // e8 (60)
 }
 
 void Board::print() {
@@ -22,21 +25,22 @@ void Board::print() {
 	for (int row = 7; row >= 0; row--) {
 		cout << row + 1 << " ";
 		for (int col = 0; col < 8; col++) {
-			int positionNum = row * 8 + col;
-			U64 position = U64(1) << positionNum;
+			int sq = row * 8 + col;
 			char p = '-';
-			if (position & white_pawns) p = 'P';
-			else if (position & white_knights) p = 'N';
-			else if (position & white_bishops) p = 'B';
-			else if (position & white_rooks) p = 'R';
-			else if (position & white_queens) p = 'Q';
-			else if (position & white_king) p = 'K';
-			else if (position & black_pawns) p = 'p';
-			else if (position & black_rooks) p = 'r';
-			else if (position & black_bishops) p = 'b';
-			else if (position & black_queens) p = 'q';
-			else if (position & black_king) p = 'k';
-			else if (position & black_knights) p = 'n';
+
+            if (WHITE_PAWNS.get_bit(sq)) p = 'P';
+            else if (WHITE_KNIGHTS.get_bit(sq)) p = 'N';
+            else if (WHITE_BISHOPS.get_bit(sq)) p = 'B';
+            else if (WHITE_ROOKS.get_bit(sq)) p = 'R';
+            else if (WHITE_QUEENS.get_bit(sq)) p = 'Q';
+            else if (WHITE_KING.get_bit(sq)) p = 'K';
+            else if (BLACK_PAWNS.get_bit(sq)) p = 'p';
+            else if (BLACK_KNIGHTS.get_bit(sq)) p = 'n';
+            else if (BLACK_BISHOPS.get_bit(sq)) p = 'b';
+            else if (BLACK_ROOKS.get_bit(sq)) p = 'r';
+            else if (BLACK_QUEENS.get_bit(sq)) p = 'q';
+            else if (BLACK_KING.get_bit(sq)) p = 'k';
+
 			cout << p << ' ';
 		}
 			cout << endl;
@@ -44,17 +48,7 @@ void Board::print() {
 	cout << "  a b c d e f g h\n\n";
 }
 
-void Board::game() {
-	while (true) {
-		char input;
-		cout << "(p)rint or (q)uit: ";
-		cin >> input;
-		cout << endl;
-		if (input == 'p') print();
-		else if (input == 'q') break;
-	}
-}
-
-U64 Board::occupied() {
-	return white_pawns | white_knights | white_bishops | white_rooks | white_queens | white_king | black_pawns | black_knights | black_bishops | black_rooks | black_queens | black_king;
+Bitboard Board::occupied() {
+    return WHITE_PAWNS | WHITE_KNIGHTS | WHITE_BISHOPS | WHITE_ROOKS | WHITE_QUEENS | WHITE_KING |
+           BLACK_PAWNS | BLACK_KNIGHTS | BLACK_BISHOPS | BLACK_ROOKS | BLACK_QUEENS | BLACK_KING;
 }
