@@ -1,8 +1,9 @@
 #include "Board.h"
 
+
 int main() {
 	Board board;
-	board.game();
+	board.print();
 
     return 0;
 }
