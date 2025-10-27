@@ -76,7 +76,7 @@ The first site being PGNs for world top players, the second being larger monthly
 
 ---
 
-## Week 4 Summary (MM/DD/YYYY)
+## Week 4 Summary (10/20/2025)
 ### This week I worked on:
 
 - Starting the Psuedo Legal Move functions, mainly the pawn movement.
@@ -100,22 +100,32 @@ The first site being PGNs for world top players, the second being larger monthly
 
 ---
 
-## Week 5 Summary (MM/DD/YYYY)
+## Week 5 Summary (10/27/2025)
 ### This week I worked on:
 
-[Your answer here]
+- My plan for this project for what classes I'll need and what they'll contain.
+- Refactoring my Board class and creating a Bitboard class.
 
 ### This week I learned:
 
-[Your answer here]
+- Two of the bigger chess search algorithms are Monte-Carlo Tree Search and MiniMax.
+- [Monte-Carlo selects a leaf from the root node that hasn't been added to the tree yet, adds it,
+   simulates it to the end of the game, and the propagates the result of the game through the tree. ]
+- [Minimax searches through the moves it can make to a certain depth and determines a score based on an evaluation function.
+   It selects the move that gives you the best score accounting for the opponent making the best counterplay.]
 
 ### My successes this week were:
 
-[Your answer here]
+- Creating a Bitboard class for a better foundation in my Board class.
+- Refactoring my Board class to use the new Bitboard Class.
+- Removed move generation for now, to be moved to my MoveGen class.
+- Creating a better plan for the execution of this engine.
 
 ### The challenges I faced this week were:
 
-[Your answer here]
+- Creating the Bitboard class and researching how to do certain bitboard operations such as finding trailing zeros.
+- Researching what type of Bitboard operations I'll need for a chess engine, such as flipping the bits in a bitboard.
+- Trying to determine how many classes I'll need and what they'll do.
 
 ---
 
