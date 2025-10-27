@@ -27,6 +27,7 @@ public:
 	Board();
 	void print();
 	Bitboard occupied();
+	void updateOccupancy();
 	// bool makeMove(const Move& move);
 	// void unmakeMove(const Move& move);
 
@@ -48,6 +49,11 @@ private:
 	};
 
 	Bitboard bitboards[12];
+	Bitboard occupancy[3];
+
+	const int WHITE_OCCUPIED = 0;
+	const int BLACK_OCCUPIED = 1;
+	const int BOTH_OCCUPIED = 2;
 
 	// File and rank masks
 	const U64 A_FILE        = 0x00000000000000FFULL;

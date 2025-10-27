@@ -18,6 +18,8 @@ Board::Board() {
     BLACK_ROOKS.set_raw(0x8100000000000000ULL);      // a8 (56), h8 (63)
     BLACK_QUEENS.set_raw(0x0800000000000000ULL);     // d8 (59)
     BLACK_KING.set_raw(0x1000000000000000ULL);       // e8 (60)
+	
+	updateOccupancy();
 }
 
 void Board::print() {
@@ -49,6 +51,14 @@ void Board::print() {
 }
 
 Bitboard Board::occupied() {
-    return WHITE_PAWNS | WHITE_KNIGHTS | WHITE_BISHOPS | WHITE_ROOKS | WHITE_QUEENS | WHITE_KING |
-           BLACK_PAWNS | BLACK_KNIGHTS | BLACK_BISHOPS | BLACK_ROOKS | BLACK_QUEENS | BLACK_KING;
+    return occupancy[BothOcc]; // Now use precomputed BOTH occupancy
+}
+
+void Board::updateOccupancy() {
+    // Compute WHITE occupancy
+    occupancy[WHITE_OCCUPIED] = WHITE_PAWNS | WHITE_KNIGHTS | WHITE_BISHOPS | WHITE_ROOKS | WHITE_QUEENS | WHITE_KING;
+    // Compute BLACK occupancy
+    occupancy[BLACK_OCCUPIED] = BLACK_PAWNS | BLACK_KNIGHTS | BLACK_BISHOPS | BLACK_ROOKS | BLACK_QUEENS | BLACK_KING;
+    // Compute BOTH occupancy
+    occupancy[BOTH_OCCUPIED] = occupancy[WHITE_OCCUPIED] | occupancy[BLACK_OCCUPIED];
 }
