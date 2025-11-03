@@ -19,6 +19,7 @@ Board::Board() {
     BLACK_QUEENS.set_raw(0x0800000000000000ULL);     // d8 (59)
     BLACK_KING.set_raw(0x1000000000000000ULL);       // e8 (60)
 	
+	print();
 	updateOccupancy();
 }
 
@@ -50,7 +51,7 @@ void Board::print() {
 	cout << "  a b c d e f g h\n\n";
 }
 
-Bitboard Board::occupied() {
+Bitboard Board::getOccupied() {
     return occupancy[BOTH_OCCUPIED]; // Return precomputed occupancy for all pieces
 }
 
@@ -61,4 +62,49 @@ void Board::updateOccupancy() {
     occupancy[BLACK_OCCUPIED] = BLACK_PAWNS | BLACK_KNIGHTS | BLACK_BISHOPS | BLACK_ROOKS | BLACK_QUEENS | BLACK_KING;
     // Compute BOTH occupancy
     occupancy[BOTH_OCCUPIED] = occupancy[WHITE_OCCUPIED] | occupancy[BLACK_OCCUPIED];
+}
+
+bool Board::makeMove(const Move& move) {
+	int from_sq = move.from_square;
+	int to_sq = move.to_square;
+	int piece = pieceFinder(from_sq);
+
+	if (piece == -1) {
+		return false;
+	}
+	if (move.is_capture) {
+		int capturedPiece = pieceFinder(to_sq);
+		if ((sideToMove == ecWhite && capturedPiece > 5) || (sideToMove == ecBlack && capturedPiece < 6)) {
+			// Capture piece from opposing side and move piece to location of capture
+			bitboards[capturedPiece].clear_bit(to_sq);
+			bitboards[piece].clear_bit(from_sq);
+			bitboards[piece].set_bit(to_sq);
+		} else {
+			return false;
+		}
+	} else if (!move.is_capture && pieceFinder(to_sq) == -1) {
+		// Move piece quietly
+		bitboards[piece].clear_bit(from_sq);
+		bitboards[piece].set_bit(to_sq);
+	}
+	updateOccupancy();
+	return true;
+}
+
+int Board::pieceFinder(const int sq) {
+	// Find the piece at that position, -1 if no piece there at all
+	if (!occupancy[2].get_bit(sq)) return -1;
+	else if (WHITE_PAWNS.get_bit(sq)) return 0;
+	else if (WHITE_KNIGHTS.get_bit(sq)) return 1;
+	else if (WHITE_BISHOPS.get_bit(sq)) return 2;
+	else if (WHITE_ROOKS.get_bit(sq)) return 3;
+	else if (WHITE_QUEENS.get_bit(sq)) return 4;
+	else if (WHITE_KING.get_bit(sq)) return 5;
+	else if (BLACK_PAWNS.get_bit(sq)) return 6;
+	else if (BLACK_KNIGHTS.get_bit(sq)) return 7;
+	else if (BLACK_BISHOPS.get_bit(sq)) return 8;
+	else if (BLACK_ROOKS.get_bit(sq)) return 9;
+	else if (BLACK_QUEENS.get_bit(sq)) return 10;
+	else if (BLACK_KING.get_bit(sq)) return 11;
+	return -1;
 }

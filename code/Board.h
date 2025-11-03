@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include "Bitboard.h"
+#include "Move.h"
 
 using namespace std;
 using U64 = uint64_t;
@@ -26,12 +27,19 @@ class Board {
 public:
 	Board();
 	void print();
-	Bitboard occupied();
+
+	Bitboard getOccupied();
+	Bitboard getOccupancy(int idx) { return occupancy[idx]; };
+	int getSideToMove() const { return sideToMove; };
 	void updateOccupancy();
-	// bool makeMove(const Move& move);
+	bool makeMove(const Move& move);
 	// void unmakeMove(const Move& move);
 
-private:
+	enum enumColor {
+		ecWhite = 0,
+		ecBlack = 1
+	};
+
 	enum enumSquare {
 		a1, b1, c1, d1, e1, f1, g1, h1,
 		a2, b2, c2, d2, e2, f2, g2, h2,
@@ -43,10 +51,10 @@ private:
 		a8, b8, c8, d8, e8, f8, g8, h8
 	};
 
-	enum enumColor {
-		ecWhite = 0,
-		ecBlack = 1
-	};
+private:
+
+
+	int pieceFinder(const int sq);
 
 	Bitboard bitboards[12];
 	Bitboard occupancy[3];
