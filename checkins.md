@@ -129,22 +129,30 @@ The first site being PGNs for world top players, the second being larger monthly
 
 ---
 
-## Week 6 Summary (MM/DD/YYYY)
+## Week 6 Summary (11/03/2025)
 ### This week I worked on:
 
-[Your answer here]
+- Creating my Move struct and MoveGen Class. 
+- Updating my Board class to work with the MoveGen class better.
 
 ### This week I learned:
 
-[Your answer here]
+- The most efficient way to generate moves for pawns, knights, and kings is to precompute the moves into Bitboards.
+- For when I get to sliding pieces (rooks, bishops, queens), I'll use magic bitboards.
+- Magic Bitboards are precomputed like the others, but they have to deal with blocking pieces within the piece rays.
+- They are then hashed "to map the vector of all relevant occupancies to a range of attack-sets per square"
 
 ### My successes this week were:
 
-[Your answer here]
+- Created the Move struct to track moves from one location to another.
+- Started the MoveGen class, using a vector to store all the moves.
+- Tested my Board function with Bitboard operations to see how I'll make moves easily.
+- Decided through research that making MoveGen functions static to not recompute the same data.
 
 ### The challenges I faced this week were:
 
-[Your answer here]
+- Figuring out how to generate moves efficiently. 
+- Determining how to best make my MoveGen function since it'll only need to be used once and isn't initiliazed.
 
 ---
 
