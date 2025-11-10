@@ -28,9 +28,16 @@ public:
 	Board();
 	void print();
 
-	Bitboard getOccupied();
+	Bitboard getOccupied() const;
 	Bitboard getOccupancy(int idx) { return occupancy[idx]; };
 	int getSideToMove() const { return sideToMove; };
+	int  getEnPassantSquare() const { return enPassantSquare; }
+
+    const Bitboard& getWhitePawns() const { return WHITE_PAWNS; }
+    const Bitboard& getBlackPawns() const { return BLACK_PAWNS; }
+
+    const Bitboard& getOccupied() { return occupancy[BOTH_OCCUPIED]; }
+    const Bitboard& getOccupancy(int i) const { return occupancy[i]; }
 	void updateOccupancy();
 	bool makeMove(const Move& move);
 	// void unmakeMove(const Move& move);
@@ -39,6 +46,10 @@ public:
 		ecWhite = 0,
 		ecBlack = 1
 	};
+
+  	const int WHITE_OCCUPIED = 0;
+	const int BLACK_OCCUPIED = 1;
+	const int BOTH_OCCUPIED = 2;
 
 	enum enumSquare {
 		a1, b1, c1, d1, e1, f1, g1, h1,
@@ -58,10 +69,6 @@ private:
 
 	Bitboard bitboards[12];
 	Bitboard occupancy[3];
-
-	const int WHITE_OCCUPIED = 0;
-	const int BLACK_OCCUPIED = 1;
-	const int BOTH_OCCUPIED = 2;
 
 	// File and rank masks
 	const U64 A_FILE        = 0x00000000000000FFULL;

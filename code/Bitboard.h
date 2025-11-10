@@ -29,6 +29,12 @@ public:
 		return index;
 	}
 
+	// Doesn't edit, just reads
+	int pop_lsb() const {
+        if (data == 0) return -1;
+        return __builtin_ctzll(data);
+    }
+
 	// Count set bits
 	int count() {
 		return __builtin_popcountll(data);

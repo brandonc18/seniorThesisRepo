@@ -51,10 +51,6 @@ void Board::print() {
 	cout << "  a b c d e f g h\n\n";
 }
 
-Bitboard Board::getOccupied() {
-    return occupancy[BOTH_OCCUPIED]; // Return precomputed occupancy for all pieces
-}
-
 void Board::updateOccupancy() {
     // Compute WHITE occupancy
     occupancy[WHITE_OCCUPIED] = WHITE_PAWNS | WHITE_KNIGHTS | WHITE_BISHOPS | WHITE_ROOKS | WHITE_QUEENS | WHITE_KING;
