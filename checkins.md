@@ -156,22 +156,27 @@ The first site being PGNs for world top players, the second being larger monthly
 
 ---
 
-## Week 7 Summary (MM/DD/YYYY)
+## Week 7 Summary (11/10/2025)
 ### This week I worked on:
 
-[Your answer here]
+- Pawn moves generation.
+- Research on search functions for when move generation is complete.
+- Research for sliding pieces and hashing them.
 
 ### This week I learned:
 
-[Your answer here]
+- Pawn moves is more complicated than knights and king movements.
+- There's more movements and conditions for pawns than kings and knights.
 
 ### My successes this week were:
 
-[Your answer here]
+- Finishing Pawn movement generation.
+- Ready to start and finish Knight and King movements faster.
 
 ### The challenges I faced this week were:
 
-[Your answer here]
+- Getting Pawn generation to work took longer than expected.
+- Trying to use const on Bitboard returns from Board class.
 
 ---
 
