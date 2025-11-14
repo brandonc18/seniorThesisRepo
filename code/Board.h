@@ -33,8 +33,8 @@ public:
 	int getSideToMove() const { return sideToMove; };
 	int  getEnPassantSquare() const { return enPassantSquare; }
 
-    const Bitboard& getWhitePawns() const { return WHITE_PAWNS; }
-    const Bitboard& getBlackPawns() const { return BLACK_PAWNS; }
+    Bitboard& getWhitePawns() { return WHITE_PAWNS; }
+    Bitboard& getBlackPawns() { return BLACK_PAWNS; }
 
     const Bitboard& getOccupancy(int i) const { return occupancy[i]; }
 	void updateOccupancy();
