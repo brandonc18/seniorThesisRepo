@@ -1,10 +1,7 @@
 #include "MoveGen.h"
 
-void MoveGen::init() {
-  if (initialized)
-    return;
-
-  for (int sq = 0; sq < 64; ++sq) {
+MoveGen::MoveGen() {
+  for (int sq = 0; sq < 64; sq++) {
     // White attacks
     if ((sq & 7) != 0)
       PAWN_ATTACKS[sq][0].set_bit(sq + 7); // not a-file
@@ -17,19 +14,16 @@ void MoveGen::init() {
     if ((sq & 7) != 7)
       PAWN_ATTACKS[sq][1].set_bit(sq - 7);
   }
-  initialized = true;
 }
 
-const void MoveGen::generateAllMoves(const Board &board, MoveList &moves) {
-  init(); // Ensure tables ready
-
+void MoveGen::generateAllMoves(Board &board, MoveList &moves) {
   moves.clear();
 
   // Loop over all pawns of side to move
   bool white = (board.getSideToMove() == Board::ecWhite);
 
-  const Bitboard* pawns = white ? &board.getWhitePawns() : &board.getBlackPawns();
-  
+  const Bitboard *pawns = white ? &board.getWhitePawns() : &board.getBlackPawns();
+
   int from_sq;
   while ((from_sq = pawns->pop_lsb()) != -1) {
     Bitboard targets = getPawnMoves(from_sq, white);
@@ -40,7 +34,7 @@ const void MoveGen::generateAllMoves(const Board &board, MoveList &moves) {
       bool is_capture = board.getOccupied().get_bit(to_sq);
       bool promotion = white ? (to_sq / 8 == 7) : (to_sq / 8 == 0);
 
-	  moves.push_back({from_sq, to_sq, promotion, is_capture, false, false});
+      moves.push_back({from_sq, to_sq, promotion, is_capture, false, false});
     }
   }
 }
@@ -85,6 +79,5 @@ Bitboard MoveGen::getPawnQuiets(const int from_square, bool white) {
 
 // Helper to get attacks
 Bitboard MoveGen::getPawnCaptures(const int from_square, bool white) {
-  init();
   return PAWN_ATTACKS[from_square][white ? 0 : 1];
 }
