@@ -1,4 +1,5 @@
 #include "MoveGen.h"
+#include "chess-types.h"
 
 MoveGen::MoveGen() {
   for (int sq = 0; sq < 64; sq++) {
@@ -13,6 +14,8 @@ MoveGen::MoveGen() {
       PAWN_ATTACKS[sq][1].set_bit(sq - 9);
     if ((sq & 7) != 7)
       PAWN_ATTACKS[sq][1].set_bit(sq - 7);
+
+
   }
 }
 
@@ -20,7 +23,7 @@ void MoveGen::generateAllMoves(Board &board, MoveList &moves) {
   moves.clear();
 
   // Loop over all pawns of side to move
-  bool white = (board.getSideToMove() == Board::ecWhite);
+  bool white = (board.getSideToMove() == ecWhite);
 
   Bitboard pawns = white ? board.getWhitePawns() : board.getBlackPawns();
 
@@ -80,4 +83,8 @@ Bitboard MoveGen::getPawnQuiets(const int from_square, bool white) {
 // Helper to get attacks
 Bitboard MoveGen::getPawnCaptures(const int from_square, bool white) {
   return PAWN_ATTACKS[from_square][white ? 0 : 1];
+}
+
+Bitboard MoveGen::getKnightMoves(const int from_square, bool white) {
+  return Bitboard(0); 
 }

@@ -14,6 +14,8 @@ private:
   Bitboard getPawnQuiets(const int from_square, bool white);
   Bitboard getPawnCaptures(const int from_square, bool white);
   Bitboard getPawnMoves(const int from_square, bool white);
+  Bitboard getKnightMoves(const int from_square, bool white);
 
-  Bitboard PAWN_ATTACKS[64][2]; // White/black
+  Bitboard PAWN_ATTACKS[64][2];
+  Bitboard KNIGHT_ATTACKS[64][2]; 
 };
