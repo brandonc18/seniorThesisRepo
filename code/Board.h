@@ -28,7 +28,7 @@ public:
 	Board();
 	void print();
 
-	Bitboard getOccupied() const;
+	Bitboard getOccupied() { return occupancy[BOTH_OCCUPIED]; }
 	Bitboard getOccupancy(int idx) { return occupancy[idx]; };
 	int getSideToMove() const { return sideToMove; };
 	int  getEnPassantSquare() const { return enPassantSquare; }
@@ -36,7 +36,6 @@ public:
     const Bitboard& getWhitePawns() const { return WHITE_PAWNS; }
     const Bitboard& getBlackPawns() const { return BLACK_PAWNS; }
 
-    const Bitboard& getOccupied() { return occupancy[BOTH_OCCUPIED]; }
     const Bitboard& getOccupancy(int i) const { return occupancy[i]; }
 	void updateOccupancy();
 	bool makeMove(const Move& move);
