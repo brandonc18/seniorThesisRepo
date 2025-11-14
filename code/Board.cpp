@@ -19,7 +19,7 @@ Board::Board() {
     BLACK_QUEENS.set_raw(0x0800000000000000ULL);     // d8 (59)
     BLACK_KING.set_raw(0x1000000000000000ULL);       // e8 (60)
 	
-	print();
+	// print();
 	updateOccupancy();
 }
 

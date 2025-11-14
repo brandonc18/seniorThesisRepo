@@ -22,10 +22,10 @@ void MoveGen::generateAllMoves(Board &board, MoveList &moves) {
   // Loop over all pawns of side to move
   bool white = (board.getSideToMove() == Board::ecWhite);
 
-  Bitboard* pawns = white ? &board.getWhitePawns() : &board.getBlackPawns();
+  Bitboard pawns = white ? board.getWhitePawns() : board.getBlackPawns();
 
   int from_sq;
-  while ((from_sq = pawns->pop_lsb()) != -1) {
+  while ((from_sq = pawns.pop_lsb()) != -1) {
     Bitboard targets = getPawnMoves(from_sq, white);
 
     int to_sq;
