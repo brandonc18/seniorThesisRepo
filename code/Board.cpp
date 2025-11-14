@@ -1,4 +1,5 @@
 #include "Board.h"
+#include "chess-types.h"
 #include <iostream>
 
 
