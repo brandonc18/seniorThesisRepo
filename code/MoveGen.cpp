@@ -1,8 +1,10 @@
 #include "MoveGen.h"
+#include <iostream>
 // #include "chess-types.h"
 
 MoveGen::MoveGen() {
   for (int sq = 0; sq < 64; sq++) {
+	// Precompute Pawn attacks
     // White attacks
     if ((sq & 7) != 0)
       PAWN_ATTACKS[sq][0].set_bit(sq + 7); // not a-file
@@ -15,7 +17,52 @@ MoveGen::MoveGen() {
     if ((sq & 7) != 7)
       PAWN_ATTACKS[sq][1].set_bit(sq - 7);
 
-	
+	// Precompute Knight attacks
+	if (sq <= 45 && sq >= 18) {
+	  KNIGHT_ATTACKS[sq].set_bit(sq - 17);
+	  KNIGHT_ATTACKS[sq].set_bit(sq + 15);
+	  KNIGHT_ATTACKS[sq].set_bit(sq - 15);
+	  KNIGHT_ATTACKS[sq].set_bit(sq + 17);
+	  KNIGHT_ATTACKS[sq].set_bit(sq + 6);
+	  KNIGHT_ATTACKS[sq].set_bit(sq - 10);
+	  KNIGHT_ATTACKS[sq].set_bit(sq + 10);
+	  KNIGHT_ATTACKS[sq].set_bit(sq - 6);
+	} else {
+	  if ((sq & 7) != 0) {
+		if (sq > 16) 
+		  KNIGHT_ATTACKS[sq].set_bit(sq - 17);
+		if (sq < 48)
+		  KNIGHT_ATTACKS[sq].set_bit(sq + 15);
+		if ((sq & 7) != 1) {
+		  if (sq < 56)
+			KNIGHT_ATTACKS[sq].set_bit(sq + 6);
+		  if (sq > 8)
+			KNIGHT_ATTACKS[sq].set_bit(sq - 10);
+		}
+	  }
+	  if ((sq & 7) != 7) {
+		if (sq > 16) 
+		  KNIGHT_ATTACKS[sq].set_bit(sq - 15);
+		if (sq < 48)
+		  KNIGHT_ATTACKS[sq].set_bit(sq + 17);
+		if ((sq & 7) != 6) {
+		  if (sq < 56)
+			KNIGHT_ATTACKS[sq].set_bit(sq + 10);
+		  if (sq > 8)
+			KNIGHT_ATTACKS[sq].set_bit(sq - 6);
+		}
+	  }
+	  
+	  if (sq > 7)
+		KING_MOVES[sq].set_bit(sq - 8);
+	  if ((sq & 7) != 0)
+		KING_MOVES[sq].set_bit(sq - 1);
+	  if ((sq & 7) != 7)
+		KING_MOVES[sq].set_bit(sq + 1);
+	  if (sq < 56)
+		KING_MOVES[sq].set_bit(sq + 8);
+
+	}
   }
 }
 
@@ -25,8 +72,14 @@ void MoveGen::generateAllMoves(Board &board, MoveList &moves) {
   // Loop over all pawns of side to move
   bool white = (board.getSideToMove() == ecWhite);
 
-  Bitboard pawns = white ? board.getWhitePawns() : board.getBlackPawns();
+  // generatePawnMoves(board, moves, white);
+  // generateKnightMoves(board, moves, white);
+  generateKingMoves(board, moves, white);
 
+}
+
+void MoveGen::generatePawnMoves(Board &board, MoveList &moves, bool white) {
+  Bitboard pawns = white ? board.getWhitePawns() : board.getBlackPawns();
   int from_sq;
   while ((from_sq = pawns.pop_lsb()) != -1) {
     Bitboard targets = getPawnMoves(from_sq, white);
@@ -34,10 +87,48 @@ void MoveGen::generateAllMoves(Board &board, MoveList &moves) {
     int to_sq;
     while ((to_sq = targets.pop_lsb()) != -1) {
       // Check if target is empty (quiet) or opponent (capture)
-      bool is_capture = board.getOccupied().get_bit(to_sq);
+	  bool is_capture = board.getOccupancy(!white).get_bit(to_sq);
       bool promotion = white ? (to_sq / 8 == 7) : (to_sq / 8 == 0);
-
+	  if (!is_capture && (abs(from_sq - to_sq) % 8 != 0)) { // Only add capturing pawn move if it is actually capturing
+		continue;
+	  }
       moves.push_back({from_sq, to_sq, promotion, is_capture, false, false});
+    }
+  }
+}
+
+void MoveGen::generateKnightMoves(Board &board, MoveList &moves, bool white) {
+  Bitboard knights = white ? board.getWhiteKnights() : board.getBlackKnights();
+  int from_sq;
+  while ((from_sq = knights.pop_lsb()) != -1) {
+    Bitboard targets = KNIGHT_ATTACKS[from_sq];
+	int to_sq;
+
+    while ((to_sq = targets.pop_lsb()) != -1) {
+      // Check if target is empty (quiet) or opponent (capture)
+	  bool is_capture = board.getOccupancy(!white).get_bit(to_sq);
+	  if (board.getOccupancy(white ? 0 : 1).get_bit(to_sq)) { // Can't capture own piece
+		continue;
+	  }
+      moves.push_back({from_sq, to_sq, false, is_capture, false, false});
+    }
+  }
+}
+
+void MoveGen::generateKingMoves(Board &board, MoveList &moves, bool white) {
+  Bitboard king = white ? board.getWhiteKing() : board.getBlackKing();
+  int from_sq;
+  while ((from_sq = king.pop_lsb()) != -1) {
+    Bitboard targets = KING_MOVES[from_sq];
+	int to_sq;
+
+    while ((to_sq = targets.pop_lsb()) != -1) {
+      // Check if target is empty (quiet) or opponent (capture)
+	  bool is_capture = board.getOccupancy(!white).get_bit(to_sq);
+	  if (board.getOccupancy(white ? 0 : 1).get_bit(to_sq)) { // Can't capture own piece
+		continue;
+	  }
+      moves.push_back({from_sq, to_sq, false, is_capture, false, false});
     }
   }
 }

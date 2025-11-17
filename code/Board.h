@@ -47,7 +47,7 @@ public:
 	Bitboard getBlackQueens() { return BLACK_QUEENS; }
 	Bitboard getBlackKing() { return BLACK_KING; }
 
-    const Bitboard& getOccupancy(int i) const { return occupancy[i]; }
+    Bitboard getOccupancy(int i) const { return occupancy[i]; }
 	void updateOccupancy();
 	bool makeMove(const Move& move);
 	// void unmakeMove(const Move& move);
