@@ -19,7 +19,7 @@ int main() {
     // board.print();
 
   for (int i = 0; i < moves.size(); i++) {
-    cout << moves[i].from_square << " to " << moves[i].to_square << endl;
+    cout << stringSquare[moves[i].from_square] << " to " << stringSquare[moves[i].to_square] << endl;
   }
   return 0;
 }

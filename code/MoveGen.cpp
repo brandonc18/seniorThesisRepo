@@ -1,5 +1,5 @@
 #include "MoveGen.h"
-#include "chess-types.h"
+// #include "chess-types.h"
 
 MoveGen::MoveGen() {
   for (int sq = 0; sq < 64; sq++) {
@@ -15,7 +15,7 @@ MoveGen::MoveGen() {
     if ((sq & 7) != 7)
       PAWN_ATTACKS[sq][1].set_bit(sq - 7);
 
-
+	
   }
 }
 
