@@ -147,7 +147,6 @@ The first site being PGNs for world top players, the second being larger monthly
 - Created the Move struct to track moves from one location to another.
 - Started the MoveGen class, using a vector to store all the moves.
 - Tested my Board function with Bitboard operations to see how I'll make moves easily.
-- Decided through research that making MoveGen functions static to not recompute the same data.
 
 ### The challenges I faced this week were:
 
@@ -180,22 +179,23 @@ The first site being PGNs for world top players, the second being larger monthly
 
 ---
 
-## Week 8 Summary (MM/DD/YYYY)
+## Week 8 Summary (11/17/2025)
 ### This week I worked on:
 
-[Your answer here]
+- Cleaned up my MoveGen and Board classes.
 
 ### This week I learned:
 
-[Your answer here]
+- Didn't learn much, didn't have a lot of time.
 
 ### My successes this week were:
 
-[Your answer here]
+- Fixing my MoveGen class, it was having compile issues but is working now.
+- Moved const variables to a new header file since it didn't make sense for them to be in the Board class.
 
 ### The challenges I faced this week were:
 
-[Your answer here]
+- MoveGen wasn't working how I wanted it to, so I had to redo some of it.
 
 ---
 
