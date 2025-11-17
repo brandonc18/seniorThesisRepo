@@ -4,66 +4,84 @@
 
 MoveGen::MoveGen() {
   for (int sq = 0; sq < 64; sq++) {
-	// Precompute Pawn attacks
-    // White attacks
-    if ((sq & 7) != 0)
-      PAWN_ATTACKS[sq][0].set_bit(sq + 7); // not a-file
-    if ((sq & 7) != 7)
-      PAWN_ATTACKS[sq][0].set_bit(sq + 9); // not h-file
+	precomputePawns(sq);
+	precomputeKnights(sq);
+	precomputeKings(sq);
+  }
+}
 
-    // Black attacks
-    if ((sq & 7) != 0)
-      PAWN_ATTACKS[sq][1].set_bit(sq - 9);
-    if ((sq & 7) != 7)
-      PAWN_ATTACKS[sq][1].set_bit(sq - 7);
+void MoveGen::precomputePawns(int sq) {
+  // Precompute Pawn attacks
+  // White attacks
+  if ((sq & 7) != 0)
+	PAWN_ATTACKS[sq][0].set_bit(sq + 7); // not a-file
+  if ((sq & 7) != 7)
+	PAWN_ATTACKS[sq][0].set_bit(sq + 9); // not h-file
 
-	// Precompute Knight attacks
-	if (sq <= 45 && sq >= 18) {
-	  KNIGHT_ATTACKS[sq].set_bit(sq - 17);
-	  KNIGHT_ATTACKS[sq].set_bit(sq + 15);
-	  KNIGHT_ATTACKS[sq].set_bit(sq - 15);
-	  KNIGHT_ATTACKS[sq].set_bit(sq + 17);
-	  KNIGHT_ATTACKS[sq].set_bit(sq + 6);
-	  KNIGHT_ATTACKS[sq].set_bit(sq - 10);
-	  KNIGHT_ATTACKS[sq].set_bit(sq + 10);
-	  KNIGHT_ATTACKS[sq].set_bit(sq - 6);
-	} else {
-	  if ((sq & 7) != 0) {
-		if (sq > 16) 
-		  KNIGHT_ATTACKS[sq].set_bit(sq - 17);
-		if (sq < 48)
-		  KNIGHT_ATTACKS[sq].set_bit(sq + 15);
-		if ((sq & 7) != 1) {
-		  if (sq < 56)
-			KNIGHT_ATTACKS[sq].set_bit(sq + 6);
-		  if (sq > 8)
-			KNIGHT_ATTACKS[sq].set_bit(sq - 10);
-		}
+  // Black attacks
+  if ((sq & 7) != 0)
+	PAWN_ATTACKS[sq][1].set_bit(sq - 9);
+  if ((sq & 7) != 7)
+	PAWN_ATTACKS[sq][1].set_bit(sq - 7);
+}
+
+void MoveGen::precomputeKnights(int sq) {
+  // Precompute Knight movements/attacks
+  if (sq <= 45 && sq >= 18) {
+	KNIGHT_ATTACKS[sq].set_bit(sq - 17);
+	KNIGHT_ATTACKS[sq].set_bit(sq + 15);
+	KNIGHT_ATTACKS[sq].set_bit(sq - 15);
+	KNIGHT_ATTACKS[sq].set_bit(sq + 17);
+	KNIGHT_ATTACKS[sq].set_bit(sq + 6);
+	KNIGHT_ATTACKS[sq].set_bit(sq - 10);
+	KNIGHT_ATTACKS[sq].set_bit(sq + 10);
+	KNIGHT_ATTACKS[sq].set_bit(sq - 6);
+  } else {
+	if ((sq & 7) != 0) {
+	  if (sq > 16) 
+		KNIGHT_ATTACKS[sq].set_bit(sq - 17);
+	  if (sq < 48)
+		KNIGHT_ATTACKS[sq].set_bit(sq + 15);
+	  if ((sq & 7) != 1) {
+		if (sq < 56)
+		  KNIGHT_ATTACKS[sq].set_bit(sq + 6);
+		if (sq > 8)
+		  KNIGHT_ATTACKS[sq].set_bit(sq - 10);
 	  }
-	  if ((sq & 7) != 7) {
-		if (sq > 16) 
-		  KNIGHT_ATTACKS[sq].set_bit(sq - 15);
-		if (sq < 48)
-		  KNIGHT_ATTACKS[sq].set_bit(sq + 17);
-		if ((sq & 7) != 6) {
-		  if (sq < 56)
-			KNIGHT_ATTACKS[sq].set_bit(sq + 10);
-		  if (sq > 8)
-			KNIGHT_ATTACKS[sq].set_bit(sq - 6);
-		}
+	}
+	if ((sq & 7) != 7) {
+	  if (sq > 16) 
+		KNIGHT_ATTACKS[sq].set_bit(sq - 15);
+	  if (sq < 48)
+		KNIGHT_ATTACKS[sq].set_bit(sq + 17);
+	  if ((sq & 7) != 6) {
+		if (sq < 56)
+		  KNIGHT_ATTACKS[sq].set_bit(sq + 10);
+		if (sq > 8)
+		  KNIGHT_ATTACKS[sq].set_bit(sq - 6);
 	  }
-	  // TODO: diagonal movements for Kings
-	  if (sq > 7)
-		KING_MOVES[sq].set_bit(sq - 8);
-	  if ((sq & 7) != 0)
-		KING_MOVES[sq].set_bit(sq - 1);
-	  if ((sq & 7) != 7)
-		KING_MOVES[sq].set_bit(sq + 1);
-	  if (sq < 56)
-		KING_MOVES[sq].set_bit(sq + 8);
-
 	}
   }
+}
+
+void MoveGen::precomputeKings(int sq) {
+  // Precompute King movements/attacks
+  if (sq > 7) 
+	KING_MOVES[sq].set_bit(sq - 8);	// King down
+  if ((sq & 7) != 0)
+	KING_MOVES[sq].set_bit(sq - 1); // King left
+  if ((sq & 7) != 7)
+	KING_MOVES[sq].set_bit(sq + 1); // King right
+  if (sq < 56)
+	KING_MOVES[sq].set_bit(sq + 8); // King up
+  if (sq > 7 && ((sq & 7) != 0))
+	KING_MOVES[sq].set_bit(sq - 9); // King down left
+  if (sq > 7 && ((sq & 7) != 7))
+	KING_MOVES[sq].set_bit(sq - 7); // King down right
+  if (sq < 56 && ((sq & 7) != 0))
+	KING_MOVES[sq].set_bit(sq + 7); // King up left
+  if (sq < 56 && ((sq & 7) != 7))
+	KING_MOVES[sq].set_bit(sq + 9); // King up right
 }
 
 void MoveGen::generateAllMoves(Board &board, MoveList &moves) {
@@ -72,8 +90,8 @@ void MoveGen::generateAllMoves(Board &board, MoveList &moves) {
   // Loop over all pawns of side to move
   bool white = (board.getSideToMove() == ecWhite);
 
-  // generatePawnMoves(board, moves, white);
-  // generateKnightMoves(board, moves, white);
+  generatePawnMoves(board, moves, white);
+  generateKnightMoves(board, moves, white);
   generateKingMoves(board, moves, white);
 
 }

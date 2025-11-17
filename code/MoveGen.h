@@ -13,6 +13,9 @@ private:
   void generatePawnMoves(Board &board, MoveList &moves, bool white);
   void generateKnightMoves(Board &board, MoveList &moves, bool white);
   void generateKingMoves(Board &board, MoveList &moves, bool white);
+  void precomputePawns(int sq);
+  void precomputeKnights(int sq);
+  void precomputeKings(int sq);
   Bitboard getPawnQuiets(const int from_square, bool white);
   Bitboard getPawnCaptures(const int from_square, bool white);
   Bitboard getPawnMoves(const int from_square, bool white);
