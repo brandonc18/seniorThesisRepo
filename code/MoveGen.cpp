@@ -52,7 +52,7 @@ MoveGen::MoveGen() {
 			KNIGHT_ATTACKS[sq].set_bit(sq - 6);
 		}
 	  }
-	  
+	  // TODO: diagonal movements for Kings
 	  if (sq > 7)
 		KING_MOVES[sq].set_bit(sq - 8);
 	  if ((sq & 7) != 0)
