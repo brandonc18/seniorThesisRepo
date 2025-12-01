@@ -199,22 +199,24 @@ The first site being PGNs for world top players, the second being larger monthly
 
 ---
 
-## Week 9 Summary (MM/DD/YYYY)
+## Week 9 Summary (12/01/2025)
 ### This week I worked on:
 
-[Your answer here]
+- Finishing my MoveGen class.
+- Starting to work on the loop for the game.
 
 ### This week I learned:
 
-[Your answer here]
+- ChessProgramming.org has lots of information on Magic Bitboards as well as common code that most engines use for
+generating the movement boards.
 
 ### My successes this week were:
 
-[Your answer here]
+- I finished my move generation for all moves (not including castling and en passant)
 
 ### The challenges I faced this week were:
 
-[Your answer here]
+- Getting the magic bitboards to properly find the right U64 movements board for the sliding pieces.
 
 ---
 
