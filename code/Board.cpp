@@ -1,5 +1,4 @@
 #include "Board.h"
-// #include "chess-types.h"
 #include <iostream>
 
 Board::Board() {
@@ -19,31 +18,21 @@ Board::Board() {
 	BLACK_QUEENS.set_raw(0x0800000000000000ULL);  // d8 (59)
 	BLACK_KING.set_raw(0x1000000000000000ULL);	  // e8 (60)
 
-	// print();
 	updateOccupancy();
 }
 
-// Backgrounds
-constexpr const char *RESET = "\033[0m";
-constexpr const char *LIGHT_SQ = "\033[48;2;235;206;158m"; // Light wood
-constexpr const char *DARK_SQ = "\033[48;2;184;115;67m";   // Dark wood
-
-// Foreground colors for the pieces
-constexpr const char *BLACK_PIECE = "\033[38;2;0;0;0m";		  // black text for white pieces
-constexpr const char *WHITE_PIECE = "\033[38;2;255;255;255m"; // white text for black pieces
-
 void Board::print() {
-	std::cout << "\n ";
+	cout << "\n ";
 
 	for (int row = 7; row >= 0; --row) {
-		std::cout << " " << (row + 1) << " "; // rank number
+		cout << " " << (row + 1) << " "; // rank number
 
 		for (int col = 0; col < 8; ++col) {
 			int sq = row * 8 + col;
 
 			// Determine piece and its color
 			char piece = ' ';
-			const char *fg = nullptr; // foreground (text) color
+			const char *fg = nullptr; // text color
 
 			if (WHITE_PAWNS.get_bit(sq)) {
 				piece = 'P';
@@ -86,17 +75,17 @@ void Board::print() {
 			// Background
 			const char *bg = ((row + col) % 2) ? LIGHT_SQ : DARK_SQ;
 
-			// Print: background + foreground
-			std::cout << bg;
+			// Print with proper colors
+			cout << bg;
 			if (piece != ' ')
-				std::cout << fg; // only apply text color if there's a piece
-			std::cout << " " << piece << " ";
-			std::cout << RESET;
+				cout << fg; // apply color if piece is there
+			cout << " " << piece << " ";
+			cout << RESET;
 		}
-		std::cout << "\n ";
+		cout << "\n ";
 	}
 
-	std::cout << "    a  b  c  d  e  f  g  h \n\n";
+	std::cout << "    a  b  c  d  e  f  g  h \n\n"; // File letter
 }
 
 void Board::updateOccupancy() {
@@ -109,29 +98,38 @@ void Board::updateOccupancy() {
 }
 
 bool Board::makeMove(const Move &move) {
-	int from_sq = move.from_square;
-	int to_sq = move.to_square;
-	int piece = pieceFinder(from_sq);
+	const int from = move.from_square;
+	const int to = move.to_square;
 
-	if (piece == -1) {
+	// Find what piece is moving (must exist)
+	int movingPiece = pieceFinder(from);
+	if (movingPiece == -1)
 		return false;
+
+	// If target square has an enemy piece capture it
+	int capturedPiece = pieceFinder(to);
+	if (capturedPiece != -1) {
+		bool weAreWhite = (sideToMove == ecWhite);
+		bool captureIsOpponent = (weAreWhite && capturedPiece >= 6) || // white captures black
+								 (!weAreWhite && capturedPiece <= 5);  // black captures white
+
+		if (!captureIsOpponent)
+			return false; // trying to capture own piece is illegal
+
+		// Remove the captured piece
+		bitboards[capturedPiece].clear_bit(to);
 	}
-	if (move.is_capture) {
-		int capturedPiece = pieceFinder(to_sq);
-		if ((sideToMove == ecWhite && capturedPiece > 5) || (sideToMove == ecBlack && capturedPiece < 6)) {
-			// Capture piece from opposing side and move piece to location of capture
-			bitboards[capturedPiece].clear_bit(to_sq);
-			bitboards[piece].clear_bit(from_sq);
-			bitboards[piece].set_bit(to_sq);
-		} else {
-			return false;
-		}
-	} else if (!move.is_capture && pieceFinder(to_sq) == -1) {
-		// Move piece quietly
-		bitboards[piece].clear_bit(from_sq);
-		bitboards[piece].set_bit(to_sq);
-	}
+
+	// Move piece by clearing it at its previous location and adding it to its new one
+	bitboards[movingPiece].clear_bit(from);
+	bitboards[movingPiece].set_bit(to);
+
+	// Switch side to move
+	sideToMove = (sideToMove == ecWhite) ? ecBlack : ecWhite;
+
+	// Update occupancy bitboards
 	updateOccupancy();
+
 	return true;
 }
 
