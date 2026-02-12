@@ -1,5 +1,6 @@
 #include "MoveGen.h"
 #include <iostream>
+#include <stack>
 
 using namespace std;
 
@@ -18,24 +19,45 @@ int main() {
 	Board board;
 	MoveGen generator;
 	MoveList moves;
+	stack<Board> boardStates;
+	bool legal = true;
 
 	while (true) {
 		system("clear");
 		board.print();
+		if (!legal) {
+			cout << "Illegal Move Put King in Check\n";
+		}
 
 		bool white = (board.getSideToMove() == ecWhite);
 		cout << (white ? "White" : "Black") << " to move\n\n";
 
 		generator.generateAllMoves(board, moves);
+
+		legal = true;
+		for (int i = 0; i < moves.size(); i++) {
+			const Move &m = moves[i];
+			if (board.getBlackKing().get_bit(m.to_square) == 1 || board.getWhiteKing().get_bit(m.to_square) == 1) {
+				legal = false;
+			}
+		}
+		if (!legal) {
+			board = boardStates.top();
+			boardStates.pop();
+			continue;
+		}
+
 		cout << moves.size() << " legal moves:\n";
 
 		for (int i = 0; i < moves.size(); i++) {
 			const Move &m = moves[i];
+
 			string moveStr = stringSquare[m.from_square] + stringSquare[m.to_square];
 
 			cout << "  " << (i + 1) << ". " << moveStr << "\n";
 		}
-		cout << "\n> ";
+
+		cout << "> ";
 
 		string input;
 		cin >> input;
@@ -68,8 +90,14 @@ int main() {
 		}
 
 		if (found) {
+			boardStates.push(board);
 			board.makeMove(chosenMove);
 		} else {
+			while (boardStates.size() > 0) {
+				boardStates.top().print();
+				boardStates.pop();
+			}
+			break;
 			continue;
 		}
 	}
