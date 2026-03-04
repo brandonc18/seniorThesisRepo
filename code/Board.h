@@ -69,8 +69,6 @@ class Board {
 
 	// Turn determinator, games start on white
 	Move lastMove;
-	// Board previousBoard;
-	// this->Board previousBoard;
 	int sideToMove = 0;
 	int castlingRights = 15;
 	int enPassantSquare = -1;

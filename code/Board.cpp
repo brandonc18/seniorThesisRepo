@@ -133,6 +133,8 @@ bool Board::makeMove(const Move &move) {
 	return true;
 }
 
+void Board::unmakeMove() {} // TODO: make unmake move function
+
 int Board::pieceFinder(const int sq) {
 	// Find the piece at that position, -1 if no piece there at all
 	if (!occupancy[2].get_bit(sq))
