@@ -8,6 +8,7 @@ class MoveGen {
   public:
 	MoveGen();
 	void generateAllMoves(Board &board, MoveList &moves);
+	void removeIllegalMoves(Board &board, MoveList &moves);
 
   private:
 	// Generate moves helpers for each piece to be used by generateAllMoves

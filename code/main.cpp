@@ -33,19 +33,25 @@ int main() {
 		cout << (white ? "White" : "Black") << " to move\n\n";
 
 		generator.generateAllMoves(board, moves);
+		generator.removeIllegalMoves(board, moves);
+		if (moves.size() == 0) {
+			break;
+		}
 
-		legal = true;
-		for (int i = 0; i < moves.size(); i++) {
-			const Move &m = moves[i];
-			if (board.getBlackKing().get_bit(m.to_square) == 1 || board.getWhiteKing().get_bit(m.to_square) == 1) {
-				legal = false;
-			}
-		}
-		if (!legal) {
-			board = boardStates.top();
-			boardStates.pop();
-			continue;
-		}
+		// legal = true;
+		// for (int i = 0; i < moves.size(); i++) {
+		// 	const Move &m = moves[i];
+		// 	if (board.getBlackKing().get_bit(m.to_square) == 1 || board.getWhiteKing().get_bit(m.to_square) == 1) {
+		// 		legal = false;
+		// 	}
+		// }
+		// if (!legal) {
+		// 	board = boardStates.top();
+		// 	boardStates.pop();
+		// 	continue;
+		// }
+
+		// remove illegal moves from generator
 
 		cout << moves.size() << " legal moves:\n";
 
@@ -93,13 +99,12 @@ int main() {
 			boardStates.push(board);
 			board.makeMove(chosenMove);
 		} else {
-			while (boardStates.size() > 0) {
-				boardStates.top().print();
-				boardStates.pop();
-			}
-			break;
 			continue;
 		}
+	}
+	while (boardStates.size() > 0) {
+		boardStates.top().print();
+		boardStates.pop();
 	}
 
 	return 0;

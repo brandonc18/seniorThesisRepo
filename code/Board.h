@@ -48,7 +48,9 @@ class Board {
 	Bitboard getOccupancy(int i) const { return occupancy[i]; }
 	void updateOccupancy();
 	bool makeMove(const Move &move);
-	// void unmakeMove(const Move& move);
+	void unmakeMove();
+	// ♟
+	// ♞♛♙
 
   private:
 	int pieceFinder(const int sq);
@@ -66,6 +68,9 @@ class Board {
 	const char *WHITE_PIECE = "\033[38;2;255;255;255m"; // white text for black pieces
 
 	// Turn determinator, games start on white
+	Move lastMove;
+	// Board previousBoard;
+	// this->Board previousBoard;
 	int sideToMove = 0;
 	int castlingRights = 15;
 	int enPassantSquare = -1;
