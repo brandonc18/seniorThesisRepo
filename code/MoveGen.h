@@ -32,6 +32,8 @@ class MoveGen {
 	Bitboard getBishopAttacks(const int sq, U64 occupancy);
 	Bitboard getQueenAttacks(const int sq, U64 occupancy) { return getRookAttacks(sq, occupancy) | getBishopAttacks(sq, occupancy); }
 
+	bool isSquareAttacked(Board &board, int sq, bool attackerIsWhite);
+
 	Bitboard PAWN_ATTACKS[64][2];
 	Bitboard KNIGHT_ATTACKS[64];
 	Bitboard KING_MOVES[64];

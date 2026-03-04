@@ -1,6 +1,7 @@
 #include "MoveGen.h"
 #include "Board.h"
 #include "Magic.h"
+#include <iostream>
 
 MoveGen::MoveGen() {
 	// Precompute moves for each square of the board
@@ -128,6 +129,60 @@ void MoveGen::generateAllMoves(Board &board, MoveList &moves) {
 	generateRookMoves(board, moves, white);
 	generateQueenMoves(board, moves, white);
 	generateKingMoves(board, moves, white);
+}
+
+void MoveGen::removeIllegalMoves(Board &board, MoveList &moves) {
+	MoveList legalMoves;
+	bool sideToMove = (board.getSideToMove() == ecWhite);
+
+	for (const Move &pseudoMove : moves) {
+		// FIX: fresh copy for EVERY move (unmakeMove is empty)
+		Board testBoard = board;
+		testBoard.makeMove(pseudoMove);
+
+		// Get the king of the side that just moved
+		Bitboard kingBB = sideToMove ? testBoard.getWhiteKing() : testBoard.getBlackKing();
+		int kingSq = kingBB.pop_lsb();
+
+		if (kingSq != -1 && !isSquareAttacked(testBoard, kingSq, !sideToMove)) {
+			legalMoves.push_back(pseudoMove); // If nothing is attacking there, it's a legal move
+		}
+	}
+
+	moves = move(legalMoves); // Moves are now legal
+}
+
+bool MoveGen::isSquareAttacked(Board &board, int sq, bool attackerIsWhite) {
+	// Do Pawns attack that sq?
+	if (attackerIsWhite) {
+		if ((PAWN_ATTACKS[sq][ecWhite].raw() & board.getWhitePawns().raw()) != 0)
+			return true;
+	} else {
+		if ((PAWN_ATTACKS[sq][ecBlack].raw() & board.getBlackPawns().raw()) != 0)
+			return true;
+	}
+
+	// Do the Knights?
+	if ((KNIGHT_ATTACKS[sq].raw() & (attackerIsWhite ? board.getWhiteKnights().raw() : board.getBlackKnights().raw())) != 0)
+		return true;
+
+	// Does the opponent King?
+	if ((KING_MOVES[sq].raw() & (attackerIsWhite ? board.getWhiteKing().raw() : board.getBlackKing().raw())) != 0)
+		return true;
+
+	// Do any of the sliding pieces?
+	U64 occ = board.getOccupied().raw();
+
+	Bitboard rookQueens = attackerIsWhite ? (board.getWhiteRooks() | board.getWhiteQueens()) : (board.getBlackRooks() | board.getBlackQueens());
+
+	Bitboard bishopQueens = attackerIsWhite ? (board.getWhiteBishops() | board.getWhiteQueens()) : (board.getBlackBishops() | board.getBlackQueens());
+
+	if ((getRookAttacks(sq, occ).raw() & rookQueens.raw()) != 0)
+		return true;
+	if ((getBishopAttacks(sq, occ).raw() & bishopQueens.raw()) != 0)
+		return true;
+
+	return false;
 }
 
 void MoveGen::generatePawnMoves(Board &board, MoveList &moves, bool white) {
