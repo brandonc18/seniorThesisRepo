@@ -9,6 +9,7 @@ class MoveGen {
 	MoveGen();
 	void generateAllMoves(Board &board, MoveList &moves);
 	void removeIllegalMoves(Board &board, MoveList &moves);
+	bool isSquareAttacked(Board &board, int sq, bool attackerIsWhite);
 
   private:
 	// Generate moves helpers for each piece to be used by generateAllMoves
@@ -32,7 +33,7 @@ class MoveGen {
 	Bitboard getBishopAttacks(const int sq, U64 occupancy);
 	Bitboard getQueenAttacks(const int sq, U64 occupancy) { return getRookAttacks(sq, occupancy) | getBishopAttacks(sq, occupancy); }
 
-	bool isSquareAttacked(Board &board, int sq, bool attackerIsWhite);
+	// bool isSquareAttacked(Board &board, int sq, bool attackerIsWhite);
 
 	Bitboard PAWN_ATTACKS[64][2];
 	Bitboard KNIGHT_ATTACKS[64];
