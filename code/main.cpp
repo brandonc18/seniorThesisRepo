@@ -15,6 +15,28 @@ int algebraicToSquare(const string &s) {
 	return (rank - '1') * 8 + (file - 'a');
 }
 
+void pickPromotion(Move &m) {
+	while (true) {
+		cout << "Pick Promotion (q, n, b, r): ";
+		char choice;
+		cin >> choice;
+		if (choice == 'q') {
+			m.is_promotion = 1;
+			break;
+		} else if (choice == 'n') {
+			m.is_promotion = 2;
+			break;
+		} else if (choice == 'b') {
+			m.is_promotion = 3;
+			break;
+		} else if (choice == 'r') {
+			m.is_promotion = 4;
+			break;
+		}
+		cout << "\nInvalid choice.\n";
+	}
+}
+
 int main() {
 	Board board;
 	MoveGen generator;
@@ -35,35 +57,23 @@ int main() {
 		generator.generateAllMoves(board, moves);
 		generator.removeIllegalMoves(board, moves);
 		if (moves.size() == 0) {
+			system("clear");
+			board.print();
+			cout << (white ? "White" : "Black") << " loses!\n";
 			break;
 		}
 
-		// legal = true;
-		// for (int i = 0; i < moves.size(); i++) {
-		// 	const Move &m = moves[i];
-		// 	if (board.getBlackKing().get_bit(m.to_square) == 1 || board.getWhiteKing().get_bit(m.to_square) == 1) {
-		// 		legal = false;
-		// 	}
-		// }
-		// if (!legal) {
-		// 	board = boardStates.top();
-		// 	boardStates.pop();
-		// 	continue;
-		// }
-
-		// remove illegal moves from generator
-
 		cout << moves.size() << " legal moves:\n";
 
-		for (int i = 0; i < moves.size(); i++) {
-			const Move &m = moves[i];
+		// for (int i = 0; i < moves.size(); i++) {
+		// 	const Move &m = moves[i];
 
-			string moveStr = stringSquare[m.from_square] + stringSquare[m.to_square];
+		// 	string moveStr = stringSquare[m.from_square] + stringSquare[m.to_square];
 
-			cout << "  " << (i + 1) << ". " << moveStr << "\n";
-		}
+		// 	cout << "  " << (i + 1) << ". " << moveStr << m.is_promotion << "\n";
+		// }
 
-		cout << "> ";
+		// cout << "> ";
 
 		string input;
 		cin >> input;
@@ -77,13 +87,26 @@ int main() {
 		if (input.length() >= 4) {
 			string from = input.substr(0, 2);
 			string to = input.substr(2, 2);
-			char promo = (input.length() >= 5) ? tolower(input[4]) : 0;
+			char promoChar = (input.length() >= 5) ? tolower(input[4]) : 0;
 
 			int fromSq = algebraicToSquare(from);
 			int toSq = algebraicToSquare(to);
 			if (fromSq == -1 || toSq == -1) {
 				cout << "Move not found or illegal.\n";
 				continue;
+			}
+
+			// Map char to our promotion index (1-4)
+			int promoIndex = 0;
+			if (promoChar) {
+				if (promoChar == 'q')
+					promoIndex = 4;
+				else if (promoChar == 'r')
+					promoIndex = 3;
+				else if (promoChar == 'b')
+					promoIndex = 2;
+				else if (promoChar == 'n')
+					promoIndex = 1;
 			}
 
 			for (const Move &m : moves) {
@@ -96,6 +119,8 @@ int main() {
 		}
 
 		if (found) {
+			if (chosenMove.is_promotion > 0)
+				pickPromotion(chosenMove);
 			boardStates.push(board);
 			board.makeMove(chosenMove);
 		} else {
@@ -103,7 +128,7 @@ int main() {
 		}
 	}
 	while (boardStates.size() > 0) {
-		boardStates.top().print();
+		// boardStates.top().print();
 		boardStates.pop();
 	}
 
