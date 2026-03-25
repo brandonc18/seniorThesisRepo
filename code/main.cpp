@@ -42,28 +42,42 @@ int main() {
 	MoveGen generator;
 	MoveList moves;
 	stack<Board> boardStates;
-	bool legal = true;
+	// bool legal = true;
 
 	while (true) {
 		system("clear");
+
+		generator.generateAllMoves(board, moves);
+		generator.removeIllegalMoves(board, moves);
+
+		cout << moves.size() << " legal moves\n";
 		board.print();
-		if (!legal) {
-			cout << "Illegal Move Put King in Check\n";
-		}
+
+		// if (!legal) {
+		// 	cout << "Illegal Move Put King in Check\n";
+		// }
 
 		bool white = (board.getSideToMove() == ecWhite);
 		cout << (white ? "White" : "Black") << " to move\n\n";
 
-		generator.generateAllMoves(board, moves);
-		generator.removeIllegalMoves(board, moves);
-		if (moves.size() == 0) {
+		if (moves.empty()) {
 			system("clear");
 			board.print();
-			cout << (white ? "White" : "Black") << " loses!\n";
+
+			// Check if king is in check
+			bool white = (board.getSideToMove() == ecWhite);
+			Bitboard kingBB = white ? board.getWhiteKing() : board.getBlackKing();
+			int kingSq = kingBB.pop_lsb();
+
+			bool inCheck = generator.isSquareAttacked(board, kingSq, !white);
+
+			if (inCheck) {
+				cout << (white ? "White" : "Black") << " is checkmated!\n";
+			} else {
+				cout << "Stalemate! Draw.\n";
+			}
 			break;
 		}
-
-		cout << moves.size() << " legal moves:\n";
 
 		// for (int i = 0; i < moves.size(); i++) {
 		// 	const Move &m = moves[i];
