@@ -3,7 +3,7 @@
 struct Move {
 	int from_square;	// Source square (0-63)
 	int to_square;		// Destination square (0-63)
-	int is_promotion;	// Flag for pawn promotion (piece type to be handled later)
+	int is_promotion;	// Flag for pawn promotion
 	bool is_capture;	// Flag for capture moves
 	bool is_castle;		// Flag for castling
 	bool is_en_passant; // Flag for en passant
