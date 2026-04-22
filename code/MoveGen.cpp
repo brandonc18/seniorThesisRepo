@@ -30,39 +30,18 @@ void MoveGen::precomputePawns(int sq) {
 }
 
 void MoveGen::precomputeKnights(int sq) {
-	// Precompute Knight movements/attacks
-	if (sq <= 45 && sq >= 18) {
-		KNIGHT_ATTACKS[sq].set_bit(sq - 17);
-		KNIGHT_ATTACKS[sq].set_bit(sq + 15);
-		KNIGHT_ATTACKS[sq].set_bit(sq - 15);
-		KNIGHT_ATTACKS[sq].set_bit(sq + 17);
-		KNIGHT_ATTACKS[sq].set_bit(sq + 6);
-		KNIGHT_ATTACKS[sq].set_bit(sq - 10);
-		KNIGHT_ATTACKS[sq].set_bit(sq + 10);
-		KNIGHT_ATTACKS[sq].set_bit(sq - 6);
-	} else {
-		if ((sq & 7) != 0) {
-			if (sq > 16)
-				KNIGHT_ATTACKS[sq].set_bit(sq - 17);
-			if (sq < 48)
-				KNIGHT_ATTACKS[sq].set_bit(sq + 15);
-			if ((sq & 7) != 1) {
-				if (sq < 56)
-					KNIGHT_ATTACKS[sq].set_bit(sq + 6);
-				if (sq > 8)
-					KNIGHT_ATTACKS[sq].set_bit(sq - 10);
-			}
-		}
-		if ((sq & 7) != 7) {
-			if (sq > 16)
-				KNIGHT_ATTACKS[sq].set_bit(sq - 15);
-			if (sq < 48)
-				KNIGHT_ATTACKS[sq].set_bit(sq + 17);
-			if ((sq & 7) != 6) {
-				if (sq < 56)
-					KNIGHT_ATTACKS[sq].set_bit(sq + 10);
-				if (sq > 8)
-					KNIGHT_ATTACKS[sq].set_bit(sq - 6);
+	KNIGHT_ATTACKS[sq].set_raw(0ULL);
+
+	const int deltas[8] = {-17, -15, 15, 17, -10, -6, 6, 10};
+
+	int fromFile = sq % 8;
+
+	for (int delta : deltas) {
+		int to = sq + delta;
+		if (to >= 0 && to < 64) {
+			int toFile = to % 8;
+			if (abs(toFile - fromFile) <= 2) { // knights never change file by more than 2, prevents wrapping
+				KNIGHT_ATTACKS[sq].set_bit(to);
 			}
 		}
 	}
@@ -129,38 +108,49 @@ void MoveGen::generateAllMoves(Board &board, MoveList &moves) {
 	generateRookMoves(board, moves, white);
 	generateQueenMoves(board, moves, white);
 	generateKingMoves(board, moves, white);
+	generateCastling(board, moves, white);
 }
 
 void MoveGen::removeIllegalMoves(Board &board, MoveList &moves) {
 	MoveList legalMoves;
-	bool sideToMove = (board.getSideToMove() == ecWhite);
+
+	// Remember who is about to move before we try any move
+	bool whiteToMove = (board.getSideToMove() == ecWhite);
 
 	for (const Move &pseudoMove : moves) {
-		// FIX: fresh copy for EVERY move (unmakeMove is empty)
-		Board testBoard = board;
-		testBoard.makeMove(pseudoMove);
+		Board testBoard = board; // fresh copy for each move
 
-		// Get the king of the side that just moved
-		Bitboard kingBB = sideToMove ? testBoard.getWhiteKing() : testBoard.getBlackKing();
+		if (!testBoard.makeMove(pseudoMove)) {
+			continue; // illegal special move
+		}
+
+		// After makeMove(), the side that just moved is the opposite of the original
+		bool movedSideIsWhite = whiteToMove; // the side that made the move
+
+		Bitboard kingBB = movedSideIsWhite ? testBoard.getWhiteKing() : testBoard.getBlackKing();
+
 		int kingSq = kingBB.pop_lsb();
+		if (kingSq == -1) {
+			continue;
+		}
 
-		if (kingSq != -1 && !isSquareAttacked(testBoard, kingSq, !sideToMove)) {
-			legalMoves.push_back(pseudoMove); // If nothing is attacking there, it's a legal move
+		bool inCheck = isSquareAttacked(testBoard, kingSq, !movedSideIsWhite);
+
+		if (!inCheck) {
+			legalMoves.push_back(pseudoMove);
 		}
 	}
 
-	moves = move(legalMoves); // Moves are now legal
+	moves = std::move(legalMoves);
 }
 
 bool MoveGen::isSquareAttacked(Board &board, int sq, bool attackerIsWhite) {
 	// Do Pawns attack that sq?
-	if (attackerIsWhite) {
-		if ((PAWN_ATTACKS[sq][ecWhite].raw() & board.getWhitePawns().raw()) != 0)
-			return true;
-	} else {
-		if ((PAWN_ATTACKS[sq][ecBlack].raw() & board.getBlackPawns().raw()) != 0)
-			return true;
-	}
+	Bitboard pawnAttackBB = PAWN_ATTACKS[sq][attackerIsWhite ? 1 : 0];
+	Bitboard pawnPieces = attackerIsWhite ? board.getWhitePawns() : board.getBlackPawns();
+
+	if ((pawnAttackBB.raw() & pawnPieces.raw()) != 0)
+		return true;
 
 	// Do the Knights?
 	if ((KNIGHT_ATTACKS[sq].raw() & (attackerIsWhite ? board.getWhiteKnights().raw() : board.getBlackKnights().raw())) != 0)
@@ -194,11 +184,20 @@ void MoveGen::generatePawnMoves(Board &board, MoveList &moves, bool white) {
 
 		int to_sq;
 		while ((to_sq = targets.pop_lsb()) != -1) {
-			// TODO: en passent not yet implemented
 			bool capture = board.getOccupancy(!white).get_bit(to_sq);
+			bool is_ep = (to_sq == board.getEnPassantSquare());
 
-			// TODO: promotions not yet implemented
-			moves.push_back(Move(from_sq, to_sq, false, capture, false, to_sq == board.getEnPassantSquare()));
+			// Is this a promotion move?
+			bool isPromotion = white ? (to_sq >= 56) : (to_sq <= 7);
+
+			if (isPromotion) {
+				// Generate 4 moves: queen, rook, bishop, knight
+				for (int p = 1; p <= 4; p++) {
+					moves.push_back(Move(from_sq, to_sq, p, capture, false, is_ep));
+				}
+			} else {
+				moves.push_back(Move(from_sq, to_sq, 0, capture, false, is_ep));
+			}
 		}
 	}
 }
@@ -216,7 +215,7 @@ void MoveGen::generateKnightMoves(Board &board, MoveList &moves, bool white) {
 			if (board.getOccupancy(white ? 0 : 1).get_bit(to_sq)) { // Can't capture own piece
 				continue;
 			}
-			moves.push_back({from_sq, to_sq, false, is_capture, false, false});
+			moves.push_back({from_sq, to_sq, 0, is_capture, false, false});
 		}
 	}
 }
@@ -234,7 +233,48 @@ void MoveGen::generateKingMoves(Board &board, MoveList &moves, bool white) {
 			if (board.getOccupancy(white ? 0 : 1).get_bit(to_sq)) { // Can't capture own piece
 				continue;
 			}
-			moves.push_back({from_sq, to_sq, false, is_capture, false, false});
+			moves.push_back({from_sq, to_sq, 0, is_capture, false, false});
+		}
+	}
+}
+
+void MoveGen::generateCastling(Board &board, MoveList &moves, bool white) {
+	// King must still be on starting square
+	int kingSq = white ? e1 : e8;
+	if (!(white ? board.getWhiteKing() : board.getBlackKing()).get_bit(kingSq)) {
+		return;
+	}
+
+	int rights = board.getCastlingRights();
+	Bitboard occupied = board.getOccupied();
+
+	if (white) {
+		// White Kingside (O-O)
+		if ((rights & 2) && !occupied.get_bit(f1) && !occupied.get_bit(g1) && !isSquareAttacked(board, e1, false) && // not in check
+			!isSquareAttacked(board, f1, false) &&																	 // doesn't pass through check
+			!isSquareAttacked(board, g1, false)) {																	 // doesn't land in check
+			moves.push_back(Move(e1, g1, 0, false, true, false));
+		}
+
+		// White Queenside (O-O-O)
+		if ((rights & 1) && !occupied.get_bit(b1) && !occupied.get_bit(c1) && !occupied.get_bit(d1) && !isSquareAttacked(board, e1, false) &&
+			!isSquareAttacked(board, d1, false) && // passes through d1
+			!isSquareAttacked(board, c1, false)) { // lands on c1
+			moves.push_back(Move(e1, c1, 0, false, true, false));
+		}
+	} else {
+		// Black Kingside (O-O)
+		if ((rights & 8) && !occupied.get_bit(f8) && !occupied.get_bit(g8) && !isSquareAttacked(board, e8, true) && // not in check
+			!isSquareAttacked(board, f8, true) &&																	// doesn't pass through check
+			!isSquareAttacked(board, g8, true)) {																	// doesn't land in check
+			moves.push_back(Move(e8, g8, 0, false, true, false));
+		}
+
+		// Black Queenside (O-O-O)
+		if ((rights & 4) && !occupied.get_bit(b8) && !occupied.get_bit(c8) && !occupied.get_bit(d8) && !isSquareAttacked(board, e8, true) &&
+			!isSquareAttacked(board, d8, true) && // passes through d8
+			!isSquareAttacked(board, c8, true)) { // lands on c8
+			moves.push_back(Move(e8, c8, 0, false, true, false));
 		}
 	}
 }
@@ -288,7 +328,7 @@ void MoveGen::generateQueenMoves(Board &board, MoveList &moves, bool white) {
 		int to;
 		while ((to = attacks.pop_lsb()) != -1) {
 			bool capture = board.getOccupancy(!white).get_bit(to);
-			moves.push_back({sq, to, false, capture, false, false});
+			moves.push_back({sq, to, 0, capture, false, false});
 		}
 	}
 }
@@ -303,7 +343,7 @@ void MoveGen::generateRookMoves(Board &board, MoveList &moves, bool white) {
 		int to;
 		while ((to = attacks.pop_lsb()) != -1) {
 			bool capture = board.getOccupancy(!white).get_bit(to);
-			moves.push_back({sq, to, false, capture, false, false});
+			moves.push_back({sq, to, 0, capture, false, false});
 		}
 	}
 }
@@ -320,7 +360,7 @@ void MoveGen::generateBishopMoves(Board &board, MoveList &moves, bool white) {
 		int to;
 		while ((to = attacks.pop_lsb()) != -1) {
 			bool capture = board.getOccupancy(!white).get_bit(to);
-			moves.push_back({sq, to, false, capture, false, false});
+			moves.push_back({sq, to, 0, capture, false, false});
 		}
 	}
 }
@@ -335,4 +375,25 @@ Bitboard MoveGen::getBishopAttacks(int sq, U64 occupancy) {
 	occupancy &= bmask(sq);
 	int index = transform(occupancy, BMagic[sq], BBits[sq]);
 	return BISHOP_ATTACKS[sq][index];
+}
+
+uint64_t MoveGen::perft(Board board, int depth) {
+	if (depth == 0) {
+		return 1ULL;
+	}
+
+	MoveList moves;
+	generateAllMoves(board, moves);
+	removeIllegalMoves(board, moves);
+
+	uint64_t leafCount = 0ULL;
+
+	for (const Move &move : moves) {
+		Board childBoard = board;
+		if (childBoard.makeMove(move)) {
+			leafCount += perft(childBoard, depth - 1);
+		}
+	}
+
+	return leafCount;
 }

@@ -11,6 +11,8 @@ class MoveGen {
 	void removeIllegalMoves(Board &board, MoveList &moves);
 	bool isSquareAttacked(Board &board, int sq, bool attackerIsWhite);
 
+	uint64_t perft(Board board, int depth);
+
   private:
 	// Generate moves helpers for each piece to be used by generateAllMoves
 	void generatePawnMoves(Board &board, MoveList &moves, bool white);
@@ -19,6 +21,7 @@ class MoveGen {
 	void generateRookMoves(Board &board, MoveList &moves, bool white);
 	void generateBishopMoves(Board &board, MoveList &moves, bool white);
 	void generateQueenMoves(Board &board, MoveList &moves, bool white);
+	void generateCastling(Board &board, MoveList &moves, bool white);
 
 	// Precompute moves for quicker move calculation
 	void precomputePawns(int sq);
@@ -32,8 +35,6 @@ class MoveGen {
 	Bitboard getRookAttacks(const int sq, U64 occupancy);
 	Bitboard getBishopAttacks(const int sq, U64 occupancy);
 	Bitboard getQueenAttacks(const int sq, U64 occupancy) { return getRookAttacks(sq, occupancy) | getBishopAttacks(sq, occupancy); }
-
-	// bool isSquareAttacked(Board &board, int sq, bool attackerIsWhite);
 
 	Bitboard PAWN_ATTACKS[64][2];
 	Bitboard KNIGHT_ATTACKS[64];
