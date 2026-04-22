@@ -101,31 +101,129 @@ bool Board::makeMove(const Move &move) {
 	const int from = move.from_square;
 	const int to = move.to_square;
 
-	// Find what piece is moving (must exist)
+	// Find the piece that is moving
 	int movingPiece = pieceFinder(from);
 	if (movingPiece == -1)
 		return false;
 
-	// If target square has an enemy piece capture it
-	int capturedPiece = pieceFinder(to);
-	if (capturedPiece != -1) {
-		bool weAreWhite = (sideToMove == ecWhite);
-		bool captureIsOpponent = (weAreWhite && capturedPiece >= 6) || // white captures black
-								 (!weAreWhite && capturedPiece <= 5);  // black captures white
+	bool isWhite = (sideToMove == ecWhite);
 
-		if (!captureIsOpponent)
-			return false; // trying to capture own piece is illegal
-
-		// Remove the captured piece
-		bitboards[capturedPiece].clear_bit(to);
+	int capturedPiece = -1;
+	if (!move.is_en_passant && !move.is_castle) {
+		capturedPiece = pieceFinder(to);
 	}
 
-	// Move piece by clearing it at its previous location and adding it to its new one
+	// Remove the moving piece from its original square
 	bitboards[movingPiece].clear_bit(from);
-	bitboards[movingPiece].set_bit(to);
+
+	// Handle each type of move
+	if (move.is_promotion) {
+		// If promotion is through a capture
+		if (capturedPiece != -1) {
+			bitboards[capturedPiece].clear_bit(to);
+		}
+		// Promote to one of the following: (q, n, b, r)
+		switch (move.is_promotion) {
+		case 1:
+			(isWhite ? WHITE_QUEENS : BLACK_QUEENS).set_bit(to);
+			break;
+		case 2:
+			(isWhite ? WHITE_KNIGHTS : BLACK_KNIGHTS).set_bit(to);
+			break;
+		case 3:
+			(isWhite ? WHITE_BISHOPS : BLACK_BISHOPS).set_bit(to);
+			break;
+		case 4:
+			(isWhite ? WHITE_ROOKS : BLACK_ROOKS).set_bit(to);
+			break;
+		}
+
+	} else if (move.is_castle) {
+		bitboards[movingPiece].set_bit(to);
+
+		// Determine kingside or queenside
+		bool kingside = (to == g1 || to == g8);
+
+		int rookFrom, rookTo;
+		Bitboard *rookBB; // pointer to the correct rook bitboard
+
+		if (isWhite) {
+			rookBB = &WHITE_ROOKS;
+			if (kingside) {
+				rookFrom = h1;
+				rookTo = f1;
+			} else {
+				rookFrom = a1;
+				rookTo = d1;
+			}
+		} else {
+			rookBB = &BLACK_ROOKS;
+			if (kingside) {
+				rookFrom = h8;
+				rookTo = f8;
+			} else {
+				rookFrom = a8;
+				rookTo = d8;
+			}
+		}
+
+		// Move the rook
+		rookBB->clear_bit(rookFrom);
+		rookBB->set_bit(rookTo);
+	} else if (move.is_en_passant) {
+		// Pawn moves to the en passant square
+		bitboards[movingPiece].set_bit(to);
+
+		// Remove the captured pawn
+		int epVictimSq = isWhite ? (to - 8) : (to + 8);
+		(isWhite ? BLACK_PAWNS : WHITE_PAWNS).clear_bit(epVictimSq);
+	} else {
+		// Normal move or normal capture
+		if (capturedPiece != -1) {
+			bitboards[capturedPiece].clear_bit(to);
+		}
+		bitboards[movingPiece].set_bit(to);
+	}
+
+	// Update en passant target square
+	enPassantSquare = -1;
+	if ((movingPiece == 0 || movingPiece == 6) && // white or black pawn
+		(from - to == 16 || to - from == 16)) {	  // double push
+		enPassantSquare = (from + to) / 2;
+	}
+
+	// Update castling rights
+	if (movingPiece == 5) {			// WHITE_KING
+		castlingRights &= ~3;		// lose both white rights
+	} else if (movingPiece == 11) { // BLACK_KING
+		castlingRights &= ~12;		// lose both black rights
+	} else if (movingPiece == 3) {	// WHITE_ROOKS
+		if (from == a1)
+			castlingRights &= ~1;
+		if (from == h1)
+			castlingRights &= ~2;
+	} else if (movingPiece == 9) { // BLACK_ROOKS
+		if (from == a8)
+			castlingRights &= ~4;
+		if (from == h8)
+			castlingRights &= ~8;
+	}
+
+	// If we captured a rook on its original square, opponent loses that right
+	if (capturedPiece == 3) { // white rook captured
+		if (to == a1)
+			castlingRights &= ~1;
+		if (to == h1)
+			castlingRights &= ~2;
+	} else if (capturedPiece == 9) { // black rook captured
+		if (to == a8)
+			castlingRights &= ~4;
+		if (to == h8)
+			castlingRights &= ~8;
+	}
 
 	// Switch side to move
-	sideToMove = (sideToMove == ecWhite) ? ecBlack : ecWhite;
+	sideToMove = isWhite ? ecBlack : ecWhite;
 
 	// Update occupancy bitboards
 	updateOccupancy();

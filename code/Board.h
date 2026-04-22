@@ -31,6 +31,7 @@ class Board {
 	Bitboard getOccupancy(int idx) { return occupancy[idx]; };
 	int getSideToMove() const { return sideToMove; };
 	int getEnPassantSquare() const { return enPassantSquare; }
+	int getCastlingRights() const { return castlingRights; }
 
 	Bitboard getWhitePawns() { return WHITE_PAWNS; }
 	Bitboard getWhiteKnights() { return WHITE_KNIGHTS; }
