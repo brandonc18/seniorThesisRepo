@@ -1,10 +1,11 @@
 #include "MoveGen.h"
+#include "Search.h"
+#include "chess-types.h"
 #include <iostream>
-#include <stack>
 
 using namespace std;
 
-// Convert position (ex: e2) to its square index (0–63)
+// Convert position to its square index (0–63)
 int algebraicToSquare(const string &s) {
 	if (s.length() != 2)
 		return -1;
@@ -40,110 +41,77 @@ void pickPromotion(Move &m) {
 int main() {
 	Board board;
 	MoveGen generator;
-	MoveList moves;
-	stack<Board> boardStates;
-	// bool legal = true;
+	Search searcher(generator);
 
 	while (true) {
 		system("clear");
 
+		bool whiteToMove = (board.getSideToMove() == ecWhite);
+
+		// Generate legal moves
+		MoveList moves;
 		generator.generateAllMoves(board, moves);
 		generator.removeIllegalMoves(board, moves);
 
 		cout << moves.size() << " legal moves\n";
 		board.print();
 
-		// if (!legal) {
-		// 	cout << "Illegal Move Put King in Check\n";
-		// }
-
-		bool white = (board.getSideToMove() == ecWhite);
-		cout << (white ? "White" : "Black") << " to move\n\n";
-
 		if (moves.empty()) {
-			system("clear");
-			board.print();
-
-			// Check if king is in check
-			bool white = (board.getSideToMove() == ecWhite);
-			Bitboard kingBB = white ? board.getWhiteKing() : board.getBlackKing();
-			int kingSq = kingBB.pop_lsb();
-
-			bool inCheck = generator.isSquareAttacked(board, kingSq, !white);
-
-			if (inCheck) {
-				cout << (white ? "White" : "Black") << " is checkmated!\n";
-			} else {
-				cout << "Stalemate! Draw.\n";
-			}
+			int kingSq = (whiteToMove ? board.getWhiteKing() : board.getBlackKing()).pop_lsb();
+			bool inCheck = generator.isSquareAttacked(board, kingSq, !whiteToMove);
+			cout << (whiteToMove ? "White" : "Black") << (inCheck ? " is checkmated!" : " stalemate!") << "\n";
 			break;
 		}
 
-		// for (int i = 0; i < moves.size(); i++) {
-		// 	const Move &m = moves[i];
+		cout << (whiteToMove ? "White" : "Black") << " to move\n";
 
-		// 	string moveStr = stringSquare[m.from_square] + stringSquare[m.to_square];
+		Move bestMove;
 
-		// 	cout << "  " << (i + 1) << ". " << moveStr << m.is_promotion << "\n";
-		// }
+		if (true) {
+			string input;
+			cin >> input;
 
-		// cout << "> ";
-
-		string input;
-		cin >> input;
-
-		if (input.empty())
-			continue;
-
-		Move chosenMove;
-		bool found = false;
-
-		if (input.length() >= 4) {
-			string from = input.substr(0, 2);
-			string to = input.substr(2, 2);
-			char promoChar = (input.length() >= 5) ? tolower(input[4]) : 0;
-
-			int fromSq = algebraicToSquare(from);
-			int toSq = algebraicToSquare(to);
-			if (fromSq == -1 || toSq == -1) {
-				cout << "Move not found or illegal.\n";
+			if (input.length() < 4) {
+				cout << "Invalid input format.\n";
 				continue;
 			}
 
-			// Map char to our promotion index (1-4)
-			int promoIndex = 0;
-			if (promoChar) {
-				if (promoChar == 'q')
-					promoIndex = 4;
-				else if (promoChar == 'r')
-					promoIndex = 3;
-				else if (promoChar == 'b')
-					promoIndex = 2;
-				else if (promoChar == 'n')
-					promoIndex = 1;
-			}
+			string fromStr = input.substr(0, 2);
+			string toStr = input.substr(2, 2);
+			char promoChar = (input.length() >= 5) ? tolower(input[4]) : 0;
 
+			int fromSq = algebraicToSquare(fromStr);
+			int toSq = algebraicToSquare(toStr);
+
+			// Find the move in the legal list
+			bool found = false;
 			for (const Move &m : moves) {
 				if (m.from_square == fromSq && m.to_square == toSq) {
-					chosenMove = m;
+					bestMove = m;
 					found = true;
 					break;
 				}
 			}
-		}
 
-		if (found) {
-			if (chosenMove.is_promotion > 0)
-				pickPromotion(chosenMove);
-			boardStates.push(board);
-			board.makeMove(chosenMove);
+			if (!found) {
+				continue;
+			}
+
+			if (bestMove.is_promotion > 0) {
+				pickPromotion(bestMove);
+			}
+
+			board.makeMove(bestMove);
+
 		} else {
-			continue;
+			cout << "Bot is thinking...\n";
+
+			uint64_t leaves = 0;
+			int searchDepth = whiteToMove ? 3 : 2;
+
+			bestMove = searcher.findBestMove(board, searchDepth, leaves);
+			board.makeMove(bestMove);
 		}
-	}
-	while (boardStates.size() > 0) {
-		// boardStates.top().print();
-		boardStates.pop();
 	}
 
 	return 0;
