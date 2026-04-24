@@ -1,4 +1,5 @@
 #include "Board.h"
+#include "chess-types.h"
 #include <iostream>
 
 Board::Board() {
@@ -97,7 +98,7 @@ void Board::updateOccupancy() {
 	occupancy[BOTH_OCCUPIED] = occupancy[WHITE_OCCUPIED] | occupancy[BLACK_OCCUPIED];
 }
 
-bool Board::makeMove(const Move &move) {
+bool Board::makeMove(Move &move) {
 	const int from = move.from_square;
 	const int to = move.to_square;
 
@@ -108,10 +109,16 @@ bool Board::makeMove(const Move &move) {
 
 	bool isWhite = (sideToMove == ecWhite);
 
-	int capturedPiece = -1;
+	// Unmake move information
+	move.oldCastlingRights = castlingRights;
+	move.oldEnPassantSquare = enPassantSquare;
+	move.capturedPiece = -1;
+
 	if (!move.is_en_passant && !move.is_castle) {
-		capturedPiece = pieceFinder(to);
+		move.capturedPiece = pieceFinder(to);
 	}
+
+	int capturedPiece = move.capturedPiece;
 
 	// Remove the moving piece from its original square
 	bitboards[movingPiece].clear_bit(from);
@@ -177,6 +184,7 @@ bool Board::makeMove(const Move &move) {
 		// Remove the captured pawn
 		int epVictimSq = isWhite ? (to - 8) : (to + 8);
 		(isWhite ? BLACK_PAWNS : WHITE_PAWNS).clear_bit(epVictimSq);
+		move.capturedPiece = isWhite ? 6 : 0;
 	} else {
 		// Normal move or normal capture
 		if (capturedPiece != -1) {
@@ -231,7 +239,123 @@ bool Board::makeMove(const Move &move) {
 	return true;
 }
 
-void Board::unmakeMove() {} // TODO: make unmake move function
+void Board::unmakeMove(const Move &move) {
+	if (move.from_square == -1) {
+		return;
+	}
+
+	const int from = move.from_square;
+	const int to = move.to_square;
+	bool wasWhiteToMove = (sideToMove == ecBlack);
+
+	int movingPiece = pieceFinder(to);
+	if (movingPiece == -1) {
+		return;
+	}
+
+	if (move.is_promotion) {
+		int promotedPiece = -1;
+		if (wasWhiteToMove) {
+			if (move.is_promotion == 1)
+				promotedPiece = 4; // Queen
+			else if (move.is_promotion == 2)
+				promotedPiece = 1; // Knight
+			else if (move.is_promotion == 3)
+				promotedPiece = 2; // Bishop
+			else if (move.is_promotion == 4)
+				promotedPiece = 3; // Rook
+		} else {
+			if (move.is_promotion == 1)
+				promotedPiece = 10; // Queen
+			else if (move.is_promotion == 2)
+				promotedPiece = 7; // Knight
+			else if (move.is_promotion == 3)
+				promotedPiece = 8; // Bishop
+			else if (move.is_promotion == 4)
+				promotedPiece = 9; // Rook
+		}
+
+		bitboards[promotedPiece].clear_bit(to);
+
+		// Restore the pawn that promoted
+		if (wasWhiteToMove) {
+			bitboards[0].set_bit(from); // White pawn
+		} else {
+			bitboards[6].set_bit(from); // Black pawn
+		}
+
+		// Restore captured piece if there was one
+		if (move.capturedPiece != -1) {
+			bitboards[move.capturedPiece].set_bit(to);
+		}
+	} else if (move.is_castle) {
+		// King back to original square
+		bitboards[movingPiece].clear_bit(to);
+		bitboards[movingPiece].set_bit(from);
+
+		// Rook back
+		bool kingside = false;
+		if (wasWhiteToMove) {
+			kingside = (to == g1);
+		} else {
+			kingside = (to == g8);
+		}
+
+		int rookFrom, rookTo, rookIdx;
+
+		if (wasWhiteToMove) {
+			rookIdx = 3; // White rook
+			if (kingside) {
+				rookFrom = f1;
+				rookTo = h1;
+			} else {
+				rookFrom = d1;
+				rookTo = a1;
+			}
+		} else {
+			rookIdx = 9; // Black rook
+			if (kingside) {
+				rookFrom = f8;
+				rookTo = h8;
+			} else {
+				rookFrom = d8;
+				rookTo = a8;
+			}
+		}
+
+		bitboards[rookIdx].clear_bit(rookFrom);
+		bitboards[rookIdx].set_bit(rookTo);
+	} else if (move.is_en_passant) {
+		// Move pawn back
+		bitboards[movingPiece].clear_bit(to);
+		bitboards[movingPiece].set_bit(from);
+
+		// Restore captured pawn
+		int epVictimSq = 0;
+		if (wasWhiteToMove) {
+			epVictimSq = to - 8;
+		} else {
+			epVictimSq = to + 8;
+		}
+		bitboards[wasWhiteToMove ? 6 : 0].set_bit(epVictimSq);
+
+	} else {
+		// Normal move or capture
+		bitboards[movingPiece].clear_bit(to);
+		bitboards[movingPiece].set_bit(from);
+
+		// Restore captured piece if there was one
+		if (move.capturedPiece != -1) {
+			bitboards[move.capturedPiece].set_bit(to);
+		}
+	}
+
+	castlingRights = move.oldCastlingRights;
+	enPassantSquare = move.oldEnPassantSquare;
+	sideToMove = wasWhiteToMove ? ecWhite : ecBlack;
+
+	updateOccupancy();
+}
 
 int Board::pieceFinder(const int sq) {
 	// Find the piece at that position, -1 if no piece there at all

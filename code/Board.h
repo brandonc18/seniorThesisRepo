@@ -48,8 +48,8 @@ class Board {
 
 	Bitboard getOccupancy(int i) const { return occupancy[i]; }
 	void updateOccupancy();
-	bool makeMove(const Move &move);
-	void unmakeMove();
+	bool makeMove(Move &move);
+	void unmakeMove(const Move &move);
 	// ♟
 	// ♞♛♙
 

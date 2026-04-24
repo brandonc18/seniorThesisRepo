@@ -118,23 +118,25 @@ void MoveGen::removeIllegalMoves(Board &board, MoveList &moves) {
 	bool whiteToMove = (board.getSideToMove() == ecWhite);
 
 	for (const Move &pseudoMove : moves) {
-		Board testBoard = board; // fresh copy for each move
+		Move m = pseudoMove;
 
-		if (!testBoard.makeMove(pseudoMove)) {
+		if (!board.makeMove(m)) {
 			continue; // illegal special move
 		}
 
 		// After makeMove(), the side that just moved is the opposite of the original
 		bool movedSideIsWhite = whiteToMove; // the side that made the move
 
-		Bitboard kingBB = movedSideIsWhite ? testBoard.getWhiteKing() : testBoard.getBlackKing();
+		Bitboard kingBB = movedSideIsWhite ? board.getWhiteKing() : board.getBlackKing();
 
 		int kingSq = kingBB.pop_lsb();
 		if (kingSq == -1) {
 			continue;
 		}
 
-		bool inCheck = isSquareAttacked(testBoard, kingSq, !movedSideIsWhite);
+		bool inCheck = isSquareAttacked(board, kingSq, !movedSideIsWhite);
+
+		board.unmakeMove(m);
 
 		if (!inCheck) {
 			legalMoves.push_back(pseudoMove);
@@ -388,10 +390,11 @@ uint64_t MoveGen::perft(Board board, int depth) {
 
 	uint64_t leafCount = 0ULL;
 
-	for (const Move &move : moves) {
-		Board childBoard = board;
-		if (childBoard.makeMove(move)) {
-			leafCount += perft(childBoard, depth - 1);
+	for (Move &move : moves) {
+		Move m = move;
+		if (board.makeMove(m)) {
+			leafCount += perft(board, depth - 1);
+			board.unmakeMove(m);
 		}
 	}
 
