@@ -143,7 +143,7 @@ void MoveGen::removeIllegalMoves(Board &board, MoveList &moves) {
 		}
 	}
 
-	moves = std::move(legalMoves);
+	moves = move(legalMoves);
 }
 
 bool MoveGen::isSquareAttacked(Board &board, int sq, bool attackerIsWhite) {
