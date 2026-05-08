@@ -1,4 +1,7 @@
 #pragma once
+#include <cstdint>
+
+using U64 = uint64_t;
 
 struct Move {
 	int from_square = -1;
@@ -12,6 +15,7 @@ struct Move {
 	int capturedPiece = -1;
 	int oldCastlingRights = 0;
 	int oldEnPassantSquare = -1;
+	U64 oldZobristKey = 0;
 
 	// Default constructor
 	Move() = default;
