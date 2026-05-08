@@ -42,6 +42,7 @@ int main() {
 	Board board;
 	MoveGen generator;
 	Search searcher(generator);
+	int totalMoves = 0;
 
 	while (true) {
 		system("clear");
@@ -67,7 +68,7 @@ int main() {
 
 		Move bestMove;
 
-		if (true) {
+		if (false) {
 			string input;
 			cin >> input;
 
@@ -107,12 +108,15 @@ int main() {
 			cout << "Bot is thinking...\n";
 
 			uint64_t leaves = 0;
-			int searchDepth = whiteToMove ? 3 : 2;
+			int searchDepth = whiteToMove ? 5 : 4;
 
-			bestMove = searcher.findBestMove(board, searchDepth, leaves);
+			bestMove = searcher.findBestMove(board, searchDepth);
 			board.makeMove(bestMove);
+			totalMoves++;
 		}
 	}
+
+	cout << totalMoves << endl;
 
 	return 0;
 }
