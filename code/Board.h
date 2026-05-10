@@ -3,6 +3,7 @@
 #include "Bitboard.h"
 #include "Move.h"
 #include "chess-types.h"
+#include <array>
 #include <cstdint>
 
 using namespace std;
@@ -47,9 +48,11 @@ class Board {
 	Bitboard getBlackKing() { return BLACK_KING; }
 
 	Bitboard getOccupancy(int i) const { return occupancy[i]; }
+	U64 getZobristKey() const { return zobristKey; }
 	void updateOccupancy();
 	bool makeMove(Move &move);
 	void unmakeMove(const Move &move);
+	// TODO: drawDetection
 	// ♟
 	// ♞♛♙
 
@@ -75,4 +78,13 @@ class Board {
 	int enPassantSquare = -1;
 	int fiftyMoveCounter = 0;
 	U64 zobristKey = 0ULL;
+
+	// Zobrist Hashing
+	static array<array<U64, 64>, 12> ZobristPieces;
+	static array<U64, 16> ZobristCastling;
+	static array<U64, 8> ZobristEnPassant;
+	static U64 ZobristSide;
+
+	void initZobrist();
+	void updateZobristKey(const Move &move);
 };

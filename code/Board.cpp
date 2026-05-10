@@ -1,6 +1,15 @@
 #include "Board.h"
 #include "chess-types.h"
+#include <array>
+#include <cstdlib>
+#include <ctime>
 #include <iostream>
+#include <random>
+
+array<array<U64, 64>, 12> Board::ZobristPieces{};
+array<U64, 16> Board::ZobristCastling{};
+array<U64, 8> Board::ZobristEnPassant{};
+U64 Board::ZobristSide = 0ULL;
 
 Board::Board() {
 	// White pieces
@@ -20,6 +29,23 @@ Board::Board() {
 	BLACK_KING.set_raw(0x1000000000000000ULL);	  // e8 (60)
 
 	updateOccupancy();
+
+	initZobrist();
+
+	zobristKey = 0ULL;
+
+	// Initialize full zobrist key from starting position
+	for (int p = 0; p < 12; p++) {
+		Bitboard bb = bitboards[p];
+		int sq;
+		while ((sq = bb.pop_lsb()) != -1) {
+			zobristKey ^= ZobristPieces[p][sq];
+		}
+	}
+	if (sideToMove == ecBlack)
+		zobristKey ^= ZobristSide;
+	if (castlingRights)
+		zobristKey ^= ZobristCastling[castlingRights];
 }
 
 void Board::print() {
@@ -86,7 +112,7 @@ void Board::print() {
 		cout << "\n ";
 	}
 
-	std::cout << "    a  b  c  d  e  f  g  h \n\n"; // File letter
+	cout << "    a  b  c  d  e  f  g  h \n\n"; // File letter
 }
 
 void Board::updateOccupancy() {
@@ -112,6 +138,7 @@ bool Board::makeMove(Move &move) {
 	// Unmake move information
 	move.oldCastlingRights = castlingRights;
 	move.oldEnPassantSquare = enPassantSquare;
+	move.oldZobristKey = zobristKey;
 	move.capturedPiece = -1;
 
 	if (!move.is_en_passant && !move.is_castle) {
@@ -236,6 +263,8 @@ bool Board::makeMove(Move &move) {
 	// Update occupancy bitboards
 	updateOccupancy();
 
+	updateZobristKey(move);
+
 	return true;
 }
 
@@ -352,6 +381,7 @@ void Board::unmakeMove(const Move &move) {
 
 	castlingRights = move.oldCastlingRights;
 	enPassantSquare = move.oldEnPassantSquare;
+	zobristKey = move.oldZobristKey;
 	sideToMove = wasWhiteToMove ? ecWhite : ecBlack;
 
 	updateOccupancy();
@@ -386,4 +416,73 @@ int Board::pieceFinder(const int sq) {
 	else if (BLACK_KING.get_bit(sq))
 		return 11;
 	return -1;
+}
+
+void Board::initZobrist() {
+	mt19937_64 rng(123456789ULL); // Consistent Seed
+
+	for (int piece = 0; piece < 12; piece++) {
+		for (int sq = 0; sq < 64; sq++) {
+			// Fill the piece-square table with unique 64-bit numbers
+			ZobristPieces[piece][sq] = rng();
+		}
+	}
+
+	for (int i = 0; i < 16; i++) {
+		// Creates unique numbers for each possible castling state
+		ZobristCastling[i] = rng();
+	}
+	for (int i = 0; i < 8; i++) {
+		// Creates unique numbers for each file for En passant
+		ZobristEnPassant[i] = rng();
+	}
+	ZobristSide = rng(); // Creates random number for the side to move
+}
+
+void Board::updateZobristKey(const Move &move) {
+	const int from = move.from_square;
+	const int to = move.to_square;
+	bool isWhite = (sideToMove == ecWhite); // get the side before the move
+
+	int movingPiece = pieceFinder(from); // determine which piece is moving
+
+	// Remove moving piece from old square
+	zobristKey ^= ZobristPieces[movingPiece][from];
+
+	// Remove captured piece
+	if (move.capturedPiece != -1) {
+		zobristKey ^= ZobristPieces[move.capturedPiece][to];
+	}
+
+	const int WhitePromotion[5] = {0, 4, 1, 2, 3};
+	const int BlackPromotion[5] = {0, 10, 7, 8, 9};
+
+	// Place moving piece on new square, promote it if needed
+	if (move.is_promotion) {
+		int newPiece = isWhite ? WhitePromotion[move.is_promotion] : BlackPromotion[move.is_promotion];
+		zobristKey ^= ZobristPieces[newPiece][to];
+	} else if (move.is_en_passant) {
+		zobristKey ^= ZobristPieces[movingPiece][to];
+		int epVictim = isWhite ? (to - 8) : (to + 8);
+		zobristKey ^= ZobristPieces[isWhite ? 6 : 0][epVictim];
+	} else {
+		zobristKey ^= ZobristPieces[movingPiece][to];
+	}
+
+	// Side to move changes
+	zobristKey ^= ZobristSide;
+
+	// Castling rights
+	if (castlingRights != move.oldCastlingRights) {
+		zobristKey ^= ZobristCastling[move.oldCastlingRights];
+		zobristKey ^= ZobristCastling[castlingRights];
+	}
+
+	// En passant
+	if (move.oldEnPassantSquare != -1) {
+		zobristKey ^= ZobristEnPassant[move.oldEnPassantSquare & 7];
+	}
+	if (enPassantSquare != -1) {
+		zobristKey ^= ZobristEnPassant[enPassantSquare & 7];
+	}
 }
