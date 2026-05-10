@@ -114,6 +114,9 @@ int main() {
 			board.makeMove(bestMove);
 			totalMoves++;
 		}
+		if (totalMoves > 300) {
+			break;
+		}
 	}
 
 	cout << totalMoves << endl;
