@@ -43,11 +43,12 @@ int Evaluate::evaluate(Board &board) {
 
 	// Reward certain moves
 	positional += rewardCastling(board);
+	positional += rewardPawnShield(board);
 	positional += rewardPawnAdvancement(board);
 	positional += rewardKnightDevelopment(board);
 
 	if (phase <= 12) {
-		positional += rewardPawnPromotion(board);
+		positional += rewardEndgameProgress(board);
 	}
 
 	// Final score
@@ -72,6 +73,52 @@ int Evaluate::rewardCastling(Board &board) const {
 	return score;
 }
 
+int Evaluate::rewardPawnShield(Board &board) const {
+	int score = 0;
+
+	// White castled kingside
+	if (board.getWhiteKing().get_bit(g1)) {
+		if (board.getWhitePawns().get_bit(f2))
+			score += 45;
+		if (board.getWhitePawns().get_bit(g2))
+			score += 60; // most important
+		if (board.getWhitePawns().get_bit(h2))
+			score += 35;
+	}
+
+	// White castled queenside
+	if (board.getWhiteKing().get_bit(c1)) {
+		if (board.getWhitePawns().get_bit(b2))
+			score += 40;
+		if (board.getWhitePawns().get_bit(c2))
+			score += 50;
+		if (board.getWhitePawns().get_bit(d2))
+			score += 35;
+	}
+
+	// Black castled kingside
+	if (board.getBlackKing().get_bit(g8)) {
+		if (board.getBlackPawns().get_bit(f7))
+			score -= 45;
+		if (board.getBlackPawns().get_bit(g7))
+			score -= 60;
+		if (board.getBlackPawns().get_bit(h7))
+			score -= 35;
+	}
+
+	// Black castled queenside
+	if (board.getBlackKing().get_bit(c8)) {
+		if (board.getBlackPawns().get_bit(b7))
+			score -= 40;
+		if (board.getBlackPawns().get_bit(c7))
+			score -= 50;
+		if (board.getBlackPawns().get_bit(d7))
+			score -= 35;
+	}
+
+	return score;
+}
+
 int Evaluate::rewardPawnAdvancement(Board &board) const {
 
 	int score = 0;
@@ -92,32 +139,6 @@ int Evaluate::rewardPawnAdvancement(Board &board) const {
 	return score;
 }
 
-int Evaluate::rewardPawnPromotion(Board &board) const {
-	int score = 0;
-
-	Bitboard whitePawns = board.getWhitePawns();
-	Bitboard blackPawns = board.getBlackPawns();
-
-	// Strong reward for advanced pawns — especially powerful in endgame
-	// Rank 4
-	score += (whitePawns & 0x00000000FF000000ULL).count() * 35;
-	score -= (blackPawns & 0x00000000FF000000ULL).count() * 35;
-
-	// Rank 5
-	score += (whitePawns & 0x000000FF00000000ULL).count() * 70;
-	score -= (blackPawns & 0x000000FF00000000ULL).count() * 70;
-
-	// Rank 6 (very strong)
-	score += (whitePawns & 0x0000FF0000000000ULL).count() * 140;
-	score -= (blackPawns & 0x0000FF0000000000ULL).count() * 140;
-
-	// Rank 7 (promotion imminent — huge bonus)
-	score += (whitePawns & 0x00FF000000000000ULL).count() * 250;
-	score -= (blackPawns & 0x00FF000000000000ULL).count() * 250;
-
-	return score;
-}
-
 int Evaluate::rewardKnightDevelopment(Board &board) const {
 	int score = 0;
 
@@ -132,6 +153,55 @@ int Evaluate::rewardKnightDevelopment(Board &board) const {
 	}
 
 	return score;
+}
+
+int Evaluate::rewardEndgameProgress(Board &board) const {
+	int score = 0;
+
+	Bitboard whitePawns = board.getWhitePawns();
+	Bitboard blackPawns = board.getBlackPawns();
+
+	// Strong reward for advanced pawns
+	// Rank 4
+	score += (whitePawns & 0x00000000FF000000ULL).count() * 35;
+	score -= (blackPawns & 0x00000000FF000000ULL).count() * 35;
+
+	// Rank 5
+	score += (whitePawns & 0x000000FF00000000ULL).count() * 70;
+	score -= (blackPawns & 0x000000FF00000000ULL).count() * 70;
+
+	// Rank 6
+	score += (whitePawns & 0x0000FF0000000000ULL).count() * 140;
+	score -= (blackPawns & 0x0000FF0000000000ULL).count() * 140;
+
+	// Rank 7 (Promotion)
+	score += (whitePawns & 0x00FF000000000000ULL).count() * 250;
+	score -= (blackPawns & 0x00FF000000000000ULL).count() * 250;
+
+	// Reward king centralization in endgame
+	int whiteKingSq = -1;
+	int blackKingSq = -1;
+
+	// Safely get king squares
+	Bitboard wk = board.getWhiteKing();
+	whiteKingSq = wk.pop_lsb();
+
+	Bitboard bk = board.getBlackKing();
+	blackKingSq = bk.pop_lsb();
+
+	score += centerBonus(whiteKingSq);
+	score -= centerBonus(blackKingSq);
+
+	return score;
+}
+
+int Evaluate::centerBonus(int sq) const {
+	if (sq == -1)
+		return 0;
+	int file = sq % 8;
+	int rank = sq / 8;
+	int dist = abs(file - 3) + abs(rank - 3);
+	return (4 - dist) * 15; // higher bonus in center
 }
 
 void Evaluate::addPieceSquareScores(Bitboard pieces, const int *mgTable, const int *egTable, bool isWhite, int &mg, int &eg) {
