@@ -112,6 +112,9 @@ void MoveGen::generateAllMoves(Board &board, MoveList &moves) {
 }
 
 void MoveGen::removeIllegalMoves(Board &board, MoveList &moves) {
+	if (moves.empty())
+		return;
+
 	MoveList legalMoves;
 
 	// Remember who is about to move before we try any move
