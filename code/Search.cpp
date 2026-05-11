@@ -1,4 +1,5 @@
 #include "Search.h"
+#include <iostream>
 
 Move Search::findBestMove(Board &board, int depth) {
 	MoveList moves;
@@ -14,11 +15,18 @@ Move Search::findBestMove(Board &board, int depth) {
 	Move bestMove = moves[0];
 	int bestValue = -INF; // Starting score that should always be updated
 
+	// cout << "\n__ Root Move Scores (depth " << depth << ") __\n";
+
 	for (const Move &move : moves) {
 		Move m = move;
 		if (board.makeMove(m)) {
 			int value = -alphaBeta(board, depth - 1, 1, -INF, INF);
 			board.unmakeMove(m);
+
+			// string fromStr = stringSquare[move.from_square];
+			// string toStr = stringSquare[move.to_square];
+
+			// cout << fromStr << toStr << "  ->  score = " << value << (value > bestValue ? "  [NEW BEST]" : "") << "\n";
 
 			if (value > bestValue) {
 				bestValue = value;
@@ -27,10 +35,17 @@ Move Search::findBestMove(Board &board, int depth) {
 		}
 	}
 
+	cout << "Final chosen move: " << stringSquare[bestMove.from_square] << stringSquare[bestMove.to_square] << " (score " << bestValue << ")\n\n";
+
 	return bestMove;
 }
 
 int Search::alphaBeta(Board &board, int depth, int ply, int alpha, int beta) {
+	// Draw detection
+	if (board.isDraw()) {
+		return 0;
+	}
+
 	if (depth == 0) {
 		return quiescenceSearch(board, alpha, beta, ply);
 	}
@@ -43,6 +58,13 @@ int Search::alphaBeta(Board &board, int depth, int ply, int alpha, int beta) {
 	// Check the transpostion table to see if it has an entry at the correct depth
 	if (tt.probe(hash, depth, ply, alpha, beta, ttScore, ttBestMove)) {
 		return ttScore;
+	}
+
+	if (depth == 1) {
+		int futilityMargin = 200;
+		if (evaluate(board) + futilityMargin <= alpha) {
+			return evaluate(board); // prune if even a big capture won't help
+		}
 	}
 
 	MoveList moves;
@@ -95,11 +117,10 @@ int Search::alphaBeta(Board &board, int depth, int ply, int alpha, int beta) {
 }
 
 int Search::quiescenceSearch(Board &board, int alpha, int beta, int ply) {
-	// TODO:
-	// // Draw detection
-	// if (board.isDraw()) {
-	// 	return 0;
-	// }
+	// Draw detection
+	if (board.isDraw()) {
+		return 0;
+	}
 
 	// Check if Position is in Transposition Table
 	U64 hash = board.getZobristKey();
@@ -120,6 +141,11 @@ int Search::quiescenceSearch(Board &board, int alpha, int beta, int ply) {
 
 	if (score > alpha)
 		alpha = score;
+
+	const int DELTA = 900; // Queen value
+	if (standPat + DELTA < alpha) {
+		return alpha; // skip all captures if even best capture can't improve alpha enough
+	}
 
 	// Generate only captures
 	MoveList moves;
@@ -155,15 +181,26 @@ int Search::quiescenceSearch(Board &board, int alpha, int beta, int ply) {
 int Search::scoreMove(const Move &move, Board &board) const {
 	int score = 0;
 
-	// En_Passent
+	// En Passent
 	if (move.is_en_passant) {
-		score += 2000;
+		score += 12000;
+		return score;
 	}
 
 	// Castling
 	if (move.is_castle) {
-		score += 100000;
+		score += 10000;
 		return score;
+	}
+
+	int from = move.from_square;
+	int to = move.to_square;
+
+	// Encourage double movements of pawns
+	if (abs(from - to) == 16) {
+		if ((from >= 8 && from <= 15) || (from >= 48 && from <= 55)) {
+			score += 3200;
+		}
 	}
 
 	// Promotions
