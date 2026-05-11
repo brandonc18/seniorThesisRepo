@@ -135,6 +135,9 @@ bool Board::makeMove(Move &move) {
 
 	bool isWhite = (sideToMove == ecWhite);
 
+	move.movingPiece = movingPiece;
+	move.movingIsWhite = isWhite;
+
 	// Unmake move information
 	move.oldCastlingRights = castlingRights;
 	move.oldEnPassantSquare = enPassantSquare;
@@ -146,6 +149,40 @@ bool Board::makeMove(Move &move) {
 	}
 
 	int capturedPiece = move.capturedPiece;
+
+	// // Update castling rights
+	if (movingPiece == 5) {			// WHITE_KING
+		castlingRights &= ~3;		// lose both white rights
+	} else if (movingPiece == 11) { // BLACK_KING
+		castlingRights &= ~12;		// lose both black rights
+	} else if (movingPiece == 3) {	// WHITE_ROOKS
+		if (from == a1)
+			castlingRights &= ~1;
+		if (from == h1)
+			castlingRights &= ~2;
+	} else if (movingPiece == 9) { // BLACK_ROOKS
+		if (from == a8)
+			castlingRights &= ~4;
+		if (from == h8)
+			castlingRights &= ~8;
+	}
+
+	// If we captured a rook on its original square, opponent loses that right
+	if (capturedPiece == 3) { // white rook captured
+		if (to == a1)
+			castlingRights &= ~1;
+		if (to == h1)
+			castlingRights &= ~2;
+	} else if (capturedPiece == 9) { // black rook captured
+		if (to == a8)
+			castlingRights &= ~4;
+		if (to == h8)
+			castlingRights &= ~8;
+	}
+
+	updateZobristKey(move);
+
+	// int capturedPiece = move.capturedPiece;
 
 	// Remove the moving piece from its original square
 	bitboards[movingPiece].clear_bit(from);
@@ -227,43 +264,20 @@ bool Board::makeMove(Move &move) {
 		enPassantSquare = (from + to) / 2;
 	}
 
-	// Update castling rights
-	if (movingPiece == 5) {			// WHITE_KING
-		castlingRights &= ~3;		// lose both white rights
-	} else if (movingPiece == 11) { // BLACK_KING
-		castlingRights &= ~12;		// lose both black rights
-	} else if (movingPiece == 3) {	// WHITE_ROOKS
-		if (from == a1)
-			castlingRights &= ~1;
-		if (from == h1)
-			castlingRights &= ~2;
-	} else if (movingPiece == 9) { // BLACK_ROOKS
-		if (from == a8)
-			castlingRights &= ~4;
-		if (from == h8)
-			castlingRights &= ~8;
-	}
-
-	// If we captured a rook on its original square, opponent loses that right
-	if (capturedPiece == 3) { // white rook captured
-		if (to == a1)
-			castlingRights &= ~1;
-		if (to == h1)
-			castlingRights &= ~2;
-	} else if (capturedPiece == 9) { // black rook captured
-		if (to == a8)
-			castlingRights &= ~4;
-		if (to == h8)
-			castlingRights &= ~8;
-	}
-
 	// Switch side to move
 	sideToMove = isWhite ? ecBlack : ecWhite;
 
 	// Update occupancy bitboards
 	updateOccupancy();
 
-	updateZobristKey(move);
+	if (move.is_capture || (movingPiece == 0 || movingPiece == 6)) {
+		fiftyMoveCounter = 0;
+		history.clear(); // reset on capture or pawn move
+	} else {
+		fiftyMoveCounter++;
+	}
+
+	history.push_back(zobristKey);
 
 	return true;
 }
@@ -385,6 +399,29 @@ void Board::unmakeMove(const Move &move) {
 	sideToMove = wasWhiteToMove ? ecWhite : ecBlack;
 
 	updateOccupancy();
+	if (!history.empty()) {
+		history.pop_back(); // Restore previous history from before the move
+	}
+}
+
+bool Board::isDraw() const {
+	if (fiftyMoveCounter >= 100) {
+		return true;
+	}
+
+	// Check for threefold repetition
+	if (history.size() >= 6) {
+		U64 current = history.back();
+		int count = 1;
+		for (int i = history.size() - 2; i >= 0; i--) {
+			if (history[i] == current) {
+				count++;
+				if (count >= 3)
+					return true; // It's in the history twice, plus the current state
+			}
+		}
+	}
+	return false;
 }
 
 int Board::pieceFinder(const int sq) {
@@ -442,47 +479,69 @@ void Board::initZobrist() {
 void Board::updateZobristKey(const Move &move) {
 	const int from = move.from_square;
 	const int to = move.to_square;
-	bool isWhite = (sideToMove == ecWhite); // get the side before the move
 
-	int movingPiece = pieceFinder(from); // determine which piece is moving
+	int movingPiece = move.movingPiece;
+	bool isWhite = move.movingIsWhite;
 
-	// Remove moving piece from old square
+	// Remove moving piece (king) from original square
 	zobristKey ^= ZobristPieces[movingPiece][from];
 
-	// Remove captured piece
+	// Remove captured piece, if any
 	if (move.capturedPiece != -1) {
 		zobristKey ^= ZobristPieces[move.capturedPiece][to];
 	}
 
-	const int WhitePromotion[5] = {0, 4, 1, 2, 3};
-	const int BlackPromotion[5] = {0, 10, 7, 8, 9};
-
-	// Place moving piece on new square, promote it if needed
 	if (move.is_promotion) {
+		// promotion numbers {null, queen, knight, bishop, rook}
+		const int WhitePromotion[5] = {0, 4, 1, 2, 3};
+		const int BlackPromotion[5] = {0, 10, 7, 8, 9};
 		int newPiece = isWhite ? WhitePromotion[move.is_promotion] : BlackPromotion[move.is_promotion];
 		zobristKey ^= ZobristPieces[newPiece][to];
 	} else if (move.is_en_passant) {
 		zobristKey ^= ZobristPieces[movingPiece][to];
-		int epVictim = isWhite ? (to - 8) : (to + 8);
-		zobristKey ^= ZobristPieces[isWhite ? 6 : 0][epVictim];
+		int epVictimSq = isWhite ? (to - 8) : (to + 8);
+		zobristKey ^= ZobristPieces[isWhite ? 6 : 0][epVictimSq];
 	} else {
 		zobristKey ^= ZobristPieces[movingPiece][to];
 	}
 
-	// Side to move changes
+	// Castling
+	if (move.is_castle) {
+		bool kingside = (to == g1 || to == g8);
+		int rookFrom, rookTo;
+		int rookPieceIdx = isWhite ? 3 : 9; // WHITE_ROOKS or BLACK_ROOKS
+
+		if (isWhite) {
+			rookFrom = kingside ? h1 : a1;
+			rookTo = kingside ? f1 : d1;
+		} else {
+			rookFrom = kingside ? h8 : a8;
+			rookTo = kingside ? f8 : d8;
+		}
+
+		// Remove rook from original square
+		zobristKey ^= ZobristPieces[rookPieceIdx][rookFrom];
+		// Place rook on new square
+		zobristKey ^= ZobristPieces[rookPieceIdx][rookTo];
+	}
+
+	// Side flip
 	zobristKey ^= ZobristSide;
 
 	// Castling rights
 	if (castlingRights != move.oldCastlingRights) {
-		zobristKey ^= ZobristCastling[move.oldCastlingRights];
-		zobristKey ^= ZobristCastling[castlingRights];
+		if (move.oldCastlingRights != 0)
+			zobristKey ^= ZobristCastling[move.oldCastlingRights];
+		if (castlingRights != 0)
+			zobristKey ^= ZobristCastling[castlingRights];
 	}
 
 	// En passant
-	if (move.oldEnPassantSquare != -1) {
+	if (move.oldEnPassantSquare != -1)
 		zobristKey ^= ZobristEnPassant[move.oldEnPassantSquare & 7];
-	}
-	if (enPassantSquare != -1) {
-		zobristKey ^= ZobristEnPassant[enPassantSquare & 7];
+
+	if ((movingPiece == 0 || movingPiece == 6) && abs(from - to) == 16) {
+		int epSq = (from + to) / 2;
+		zobristKey ^= ZobristEnPassant[epSq & 7];
 	}
 }

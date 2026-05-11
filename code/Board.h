@@ -52,6 +52,8 @@ class Board {
 	void updateOccupancy();
 	bool makeMove(Move &move);
 	void unmakeMove(const Move &move);
+	bool isDraw() const;
+
 	// TODO: drawDetection
 	// ♟
 	// ♞♛♙
@@ -77,6 +79,7 @@ class Board {
 	int castlingRights = 15;
 	int enPassantSquare = -1;
 	int fiftyMoveCounter = 0;
+	vector<U64> history;
 	U64 zobristKey = 0ULL;
 
 	// Zobrist Hashing
