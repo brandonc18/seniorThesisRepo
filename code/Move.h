@@ -16,6 +16,8 @@ struct Move {
 	int oldCastlingRights = 0;
 	int oldEnPassantSquare = -1;
 	U64 oldZobristKey = 0;
+	int movingPiece = -1;
+	bool movingIsWhite = false;
 
 	// Default constructor
 	Move() = default;
