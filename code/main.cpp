@@ -68,7 +68,7 @@ int main() {
 
 		Move bestMove;
 
-		if (false) {
+		if (!whiteToMove && false) {
 			string input;
 			cin >> input;
 
@@ -108,14 +108,11 @@ int main() {
 			cout << "Bot is thinking...\n";
 
 			uint64_t leaves = 0;
-			int searchDepth = whiteToMove ? 5 : 4;
+			int searchDepth = whiteToMove ? 5 : 3;
 
 			bestMove = searcher.findBestMove(board, searchDepth);
 			board.makeMove(bestMove);
 			totalMoves++;
-		}
-		if (totalMoves > 300) {
-			break;
 		}
 	}
 
