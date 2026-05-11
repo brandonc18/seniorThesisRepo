@@ -41,8 +41,97 @@ int Evaluate::evaluate(Board &board) {
 	// Linear interpolation from MG to EG
 	int positional = (mg * phase + eg * (24 - phase)) / 24;
 
+	// Reward certain moves
+	positional += rewardCastling(board);
+	positional += rewardPawnAdvancement(board);
+	positional += rewardKnightDevelopment(board);
+
+	if (phase <= 12) {
+		positional += rewardPawnPromotion(board);
+	}
+
 	// Final score
 	return material + positional;
+}
+
+int Evaluate::rewardCastling(Board &board) const {
+	int score = 0;
+
+	if (board.getWhiteKing().get_bit(g1) || board.getWhiteKing().get_bit(c1)) {
+		score += 220;
+	}
+	if (board.getBlackKing().get_bit(g8) || board.getBlackKing().get_bit(c8)) {
+		score -= 220;
+	}
+
+	if (board.getCastlingRights() & 3)
+		score += 80;
+	if (board.getCastlingRights() & 12)
+		score += 80;
+
+	return score;
+}
+
+int Evaluate::rewardPawnAdvancement(Board &board) const {
+
+	int score = 0;
+	Bitboard whitePawns = board.getWhitePawns();
+	Bitboard blackPawns = board.getBlackPawns();				// Reward pawns on rank 4 and 5 much more
+	score += (whitePawns & 0x00000000FF000000ULL).count() * 40; // rank 4
+	score += (whitePawns & 0x000000FF00000000ULL).count() * 60; // rank 5
+
+	score -= (blackPawns & 0x00000000FF000000ULL).count() * 40;
+	score -= (blackPawns & 0x000000FF00000000ULL).count() * 60;
+
+	if (board.getWhitePawns().get_bit(e4) || board.getWhitePawns().get_bit(d4)) {
+		score += 45;
+	}
+	if (board.getBlackPawns().get_bit(e5) || board.getBlackPawns().get_bit(d5)) {
+		score -= 45;
+	}
+	return score;
+}
+
+int Evaluate::rewardPawnPromotion(Board &board) const {
+	int score = 0;
+
+	Bitboard whitePawns = board.getWhitePawns();
+	Bitboard blackPawns = board.getBlackPawns();
+
+	// Strong reward for advanced pawns — especially powerful in endgame
+	// Rank 4
+	score += (whitePawns & 0x00000000FF000000ULL).count() * 35;
+	score -= (blackPawns & 0x00000000FF000000ULL).count() * 35;
+
+	// Rank 5
+	score += (whitePawns & 0x000000FF00000000ULL).count() * 70;
+	score -= (blackPawns & 0x000000FF00000000ULL).count() * 70;
+
+	// Rank 6 (very strong)
+	score += (whitePawns & 0x0000FF0000000000ULL).count() * 140;
+	score -= (blackPawns & 0x0000FF0000000000ULL).count() * 140;
+
+	// Rank 7 (promotion imminent — huge bonus)
+	score += (whitePawns & 0x00FF000000000000ULL).count() * 250;
+	score -= (blackPawns & 0x00FF000000000000ULL).count() * 250;
+
+	return score;
+}
+
+int Evaluate::rewardKnightDevelopment(Board &board) const {
+	int score = 0;
+
+	if (board.getWhiteKnights().get_bit(a1) || board.getWhiteKnights().get_bit(h1) || board.getWhiteKnights().get_bit(a2) || board.getWhiteKnights().get_bit(h2) ||
+		board.getWhiteKnights().get_bit(a3) || board.getWhiteKnights().get_bit(h3)) {
+		score -= 35;
+	}
+
+	if (board.getBlackKnights().get_bit(a8) || board.getBlackKnights().get_bit(h8) || board.getBlackKnights().get_bit(a7) || board.getBlackKnights().get_bit(h7) ||
+		board.getBlackKnights().get_bit(a6) || board.getBlackKnights().get_bit(h6)) {
+		score += 35;
+	}
+
+	return score;
 }
 
 void Evaluate::addPieceSquareScores(Bitboard pieces, const int *mgTable, const int *egTable, bool isWhite, int &mg, int &eg) {
