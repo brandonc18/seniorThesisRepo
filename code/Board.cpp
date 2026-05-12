@@ -51,10 +51,10 @@ Board::Board() {
 void Board::print() {
 	cout << "\n ";
 
-	for (int row = 7; row >= 0; --row) {
+	for (int row = 7; row >= 0; row--) {
 		cout << " " << (row + 1) << " "; // rank number
 
-		for (int col = 0; col < 8; ++col) {
+		for (int col = 0; col < 8; col++) {
 			int sq = row * 8 + col;
 
 			// Determine piece and its color
@@ -105,7 +105,7 @@ void Board::print() {
 			// Print with proper colors
 			cout << bg;
 			if (piece != ' ')
-				cout << fg; // apply color if piece is there
+				cout << fg; // apply color to piece if piece is there
 			cout << " " << piece << " ";
 			cout << RESET;
 		}
