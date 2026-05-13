@@ -404,7 +404,7 @@ void Board::unmakeMove(const Move &move) {
 	}
 }
 
-bool Board::isDraw() const {
+bool Board::isDraw() {
 	if (fiftyMoveCounter >= 100) {
 		return true;
 	}

@@ -52,7 +52,7 @@ class Board {
 	void updateOccupancy();
 	bool makeMove(Move &move);
 	void unmakeMove(const Move &move);
-	bool isDraw() const;
+	bool isDraw();
 
 	// TODO: drawDetection
 	// ♟
