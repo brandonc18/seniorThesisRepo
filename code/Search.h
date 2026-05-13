@@ -24,6 +24,6 @@ class Search {
 
 	int evaluate(Board &board) { return evaluator.evaluate(board); }
 	int quiescenceSearch(Board &board, int alpha, int beta, int ply);
-	int scoreMove(const Move &move, Board &board) const;
-	void orderMoves(MoveList &moves, Board &board) const;
+	int scoreMove(const Move &move, Board &board);
+	void orderMoves(MoveList &moves, Board &board);
 };

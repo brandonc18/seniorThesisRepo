@@ -35,7 +35,7 @@ Move Search::findBestMove(Board &board, int depth) {
 		}
 	}
 
-	cout << "Final chosen move: " << stringSquare[bestMove.from_square] << stringSquare[bestMove.to_square] << " (score " << bestValue << ")\n\n";
+	// cout << "Final chosen move: " << stringSquare[bestMove.from_square] << stringSquare[bestMove.to_square] << " (score " << bestValue << ")\n\n";
 
 	return bestMove;
 }
@@ -178,7 +178,7 @@ int Search::quiescenceSearch(Board &board, int alpha, int beta, int ply) {
 	return alpha;
 }
 
-int Search::scoreMove(const Move &move, Board &board) const {
+int Search::scoreMove(const Move &move, Board &board) {
 	int score = 0;
 
 	// En Passent
@@ -244,7 +244,7 @@ int Search::scoreMove(const Move &move, Board &board) const {
 	return score;
 }
 
-void Search::orderMoves(MoveList &moves, Board &board) const {
+void Search::orderMoves(MoveList &moves, Board &board) {
 	// Order moves from Highest Score to Lowest
 	for (int i = 0; i < moves.size(); i++) {
 		int bestIdx = i;
