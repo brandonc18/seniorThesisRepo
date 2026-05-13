@@ -44,6 +44,28 @@ int main() {
 	Search searcher(generator);
 	int totalMoves = 0;
 
+	cout << "1. Play against Bot (Human vs Bot)\n";
+	cout << "2. Watch Bot vs Bot\n";
+
+	int choice;
+	cin >> choice;
+
+	bool humanPlays = true;
+	int whiteDepth = 3;
+	int blackDepth = 3;
+
+	if (choice != 1) {
+		humanPlays = false;
+		cout << "White bot search depth: ";
+		cin >> whiteDepth;
+		cout << "Black bot search depth: ";
+		cin >> blackDepth;
+	} else {
+		cout << "Bot search depth: ";
+		cin >> blackDepth;
+		whiteDepth = blackDepth;
+	}
+
 	while (true) {
 		system("clear");
 
@@ -68,7 +90,7 @@ int main() {
 
 		Move bestMove;
 
-		if (!whiteToMove && false) {
+		if (whiteToMove && humanPlays) {
 			string input;
 			cin >> input;
 
@@ -108,15 +130,19 @@ int main() {
 			cout << "Bot is thinking...\n";
 
 			uint64_t leaves = 0;
-			int searchDepth = whiteToMove ? 5 : 3;
+			int searchDepth = whiteToMove ? whiteDepth : blackDepth;
 
 			bestMove = searcher.findBestMove(board, searchDepth);
 			board.makeMove(bestMove);
 			totalMoves++;
 		}
+		if (totalMoves > 250) {
+			cout << "Draw by repetition\n";
+			break;
+		}
 	}
 
-	cout << totalMoves << endl;
+	// cout << totalMoves << endl;
 
 	return 0;
 }
