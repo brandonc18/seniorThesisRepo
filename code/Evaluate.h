@@ -9,12 +9,12 @@ class Evaluate {
 	int materialScore(Bitboard pawns, Bitboard knights, Bitboard bishops, Bitboard rooks, Bitboard queens);
 	int mirror(int sq) { return sq ^ 56; }
 	void addPieceSquareScores(Bitboard pieces, const int *mgTable, const int *egTable, bool isWhite, int &mg, int &eg);
-	int rewardCastling(Board &board) const;
-	int rewardPawnShield(Board &board) const;
-	int rewardPawnAdvancement(Board &board) const;
-	int rewardKnightDevelopment(Board &board) const;
-	int rewardEndgameProgress(Board &board) const;
-	int centerBonus(int sq) const;
+	int rewardCastling(Board &board);
+	int rewardPawnShield(Board &board);
+	int rewardPawnAdvancement(Board &board);
+	int rewardKnightDevelopment(Board &board);
+	int rewardEndgameProgress(Board &board);
+	int centerBonus(int sq);
 
 	const int PIECE_SCORES_MATERIAL[6] = {
 		100,  // pown

@@ -38,7 +38,7 @@ int Evaluate::evaluate(Board &board) {
 	phase += (board.getWhiteQueens().count() + board.getBlackQueens().count()) * 4;
 	phase = min(phase, 24);
 
-	// Linear interpolation from MG to EG
+	//  Tapered Evaluation with Linear interpolation from MG to EG
 	int positional = (mg * phase + eg * (24 - phase)) / 24;
 
 	// Reward certain moves
@@ -55,7 +55,7 @@ int Evaluate::evaluate(Board &board) {
 	return material + positional;
 }
 
-int Evaluate::rewardCastling(Board &board) const {
+int Evaluate::rewardCastling(Board &board) {
 	int score = 0;
 
 	if (board.getWhiteKing().get_bit(g1) || board.getWhiteKing().get_bit(c1)) {
@@ -65,15 +65,15 @@ int Evaluate::rewardCastling(Board &board) const {
 		score -= 220;
 	}
 
-	if (board.getCastlingRights() & 3)
+	if (board.getCastlingRights() & 3) // White
 		score += 80;
-	if (board.getCastlingRights() & 12)
-		score += 80;
+	if (board.getCastlingRights() & 12) // Black
+		score -= 80;
 
 	return score;
 }
 
-int Evaluate::rewardPawnShield(Board &board) const {
+int Evaluate::rewardPawnShield(Board &board) {
 	int score = 0;
 
 	// White castled kingside
@@ -119,7 +119,7 @@ int Evaluate::rewardPawnShield(Board &board) const {
 	return score;
 }
 
-int Evaluate::rewardPawnAdvancement(Board &board) const {
+int Evaluate::rewardPawnAdvancement(Board &board) {
 
 	int score = 0;
 	Bitboard whitePawns = board.getWhitePawns();
@@ -139,7 +139,7 @@ int Evaluate::rewardPawnAdvancement(Board &board) const {
 	return score;
 }
 
-int Evaluate::rewardKnightDevelopment(Board &board) const {
+int Evaluate::rewardKnightDevelopment(Board &board) {
 	int score = 0;
 
 	if (board.getWhiteKnights().get_bit(a1) || board.getWhiteKnights().get_bit(h1) || board.getWhiteKnights().get_bit(a2) || board.getWhiteKnights().get_bit(h2) ||
@@ -155,7 +155,7 @@ int Evaluate::rewardKnightDevelopment(Board &board) const {
 	return score;
 }
 
-int Evaluate::rewardEndgameProgress(Board &board) const {
+int Evaluate::rewardEndgameProgress(Board &board) {
 	int score = 0;
 
 	Bitboard whitePawns = board.getWhitePawns();
@@ -195,7 +195,7 @@ int Evaluate::rewardEndgameProgress(Board &board) const {
 	return score;
 }
 
-int Evaluate::centerBonus(int sq) const {
+int Evaluate::centerBonus(int sq) {
 	if (sq == -1)
 		return 0;
 	int file = sq % 8;
